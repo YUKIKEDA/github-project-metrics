@@ -4,8 +4,8 @@ on:
       - main
 
 jobs:
-  hello_world_job:
-    name: A job to say hello
+  get_issues_job:
+    name: Get Repository Issues
     runs-on: ubuntu-latest
 
     steps:
@@ -14,12 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Hello world action step
+      - name: Get Repository Issues
         uses: ./ # Uses an action in the root directory
-        id: hello
+        id: get-issues
         with:
-          who-to-greet: Mona the Octocat
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Use the output from the `hello` step
-      - name: Get the output time
-        run: echo "The time was ${{ steps.hello.outputs.time }}"
+      # Use the output from the `get-issues` step
+      - name: Display Issue Count
+        run: echo "Total issues: ${{ steps.get-issues.outputs.issue-count }}"
+
+      - name: Save Issues to File
+        run: |
+          echo '${{ steps.get-issues.outputs.issues }}' > issues.json
+          echo "Issues saved to issues.json"
