@@ -31435,6 +31435,13 @@ async function getAllProjects() {
     
     coreExports.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
+    // ProjectデータのJSONを表示
+    coreExports.info("=== Projectデータ（整形済み） ===");
+    coreExports.info(JSON.stringify(formattedProjects, null, 2));
+    
+    coreExports.info("=== Projectデータ（生データ） ===");
+    coreExports.info(JSON.stringify(projects, null, 2));
+    
     return formattedProjects;
     
   } catch (error) {

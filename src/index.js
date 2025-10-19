@@ -188,6 +188,13 @@ async function getAllProjects() {
     
     core.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
+    // ProjectデータのJSONを表示
+    core.info("=== Projectデータ（整形済み） ===");
+    core.info(JSON.stringify(formattedProjects, null, 2));
+    
+    core.info("=== Projectデータ（生データ） ===");
+    core.info(JSON.stringify(projects, null, 2));
+    
     return formattedProjects;
     
   } catch (error) {

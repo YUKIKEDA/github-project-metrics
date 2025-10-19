@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  get_issues_job:
-    name: Get Repository Issues
+  get_metrics_job:
+    name: Get Repository Metrics
     runs-on: ubuntu-latest
 
     steps:
@@ -15,24 +15,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Get Repository Issues
+      - name: Get Repository Metrics
         uses: ./ # Uses an action in the root directory
-        id: get-issues
+        id: get-metrics
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Use the output from the `get-issues` step
-      - name: Display Issue Count
+      # Use the output from the `get-metrics` step
+      - name: Display Metrics Count
         run: |
-          echo "Total issues: ${{ steps.get-issues.outputs['issue-count'] }}"
+          echo "Total issues: ${{ steps.get-metrics.outputs['issue-count'] }}"
+          echo "Total projects: ${{ steps.get-metrics.outputs['project-count'] }}"
+          echo "Total tasks: ${{ steps.get-metrics.outputs['total-tasks'] }}"
 
       - name: Display Raw Issues Data
         run: |
           echo "=== Raw Issues Data (Unformatted) ==="
-          echo '${{ steps.get-issues.outputs['raw-issues'] }}' | jq . || echo '${{ steps.get-issues.outputs['raw-issues'] }}'
+          echo '${{ steps.get-metrics.outputs['raw-issues'] }}' | jq . || echo '${{ steps.get-metrics.outputs['raw-issues'] }}'
           echo "======================================="
 
-      - name: Save Issues to File
+      - name: Display Raw Projects Data
         run: |
-          echo '${{ steps.get-issues.outputs.issues }}' > issues.json
-          echo "Issues saved to issues.json"
+          echo "=== Raw Projects Data (Unformatted) ==="
+          echo '${{ steps.get-metrics.outputs['raw-projects'] }}' | jq . || echo '${{ steps.get-metrics.outputs['raw-projects'] }}'
+          echo "======================================="
+
+      - name: Display Formatted Projects Data
+        run: |
+          echo "=== Formatted Projects Data ==="
+          echo '${{ steps.get-metrics.outputs['projects'] }}' | jq . || echo '${{ steps.get-metrics.outputs['projects'] }}'
+          echo "=============================="
+
+      - name: Save Data to Files
+        run: |
+          echo '${{ steps.get-metrics.outputs.issues }}' > issues.json
+          echo '${{ steps.get-metrics.outputs.projects }}' > projects.json
+          echo "Data saved to issues.json and projects.json"
