@@ -31262,6 +31262,24 @@ async function getAllProjects() {
     // ユーザーレベルのプロジェクトを取得
     if (projectScope === "user") {
       coreExports.info("ユーザーレベルのプロジェクトを確認中...");
+      
+      // まずユーザー情報を確認
+      const userInfoQuery = `
+        query {
+          viewer {
+            login
+            id
+            projectsV2(first: 100) {
+              totalCount
+            }
+          }
+        }
+      `;
+      
+      const { viewer: userInfo } = await octokit.graphql(userInfoQuery);
+      coreExports.info(`ユーザー情報: ${userInfo.login} (ID: ${userInfo.id})`);
+      coreExports.info(`プロジェクト総数: ${userInfo.projectsV2.totalCount}`);
+      
       const userQuery = `
         query {
           viewer {
@@ -31283,8 +31301,12 @@ async function getAllProjects() {
       `;
       
       const { viewer } = await octokit.graphql(userQuery);
+      coreExports.info(`GraphQLレスポンス: ${JSON.stringify(viewer, null, 2)}`);
       const userProjects = viewer?.projectsV2?.nodes || [];
       coreExports.info(`ユーザーレベルのプロジェクト: ${userProjects.length}件`);
+      if (userProjects.length > 0) {
+        coreExports.info(`プロジェクト詳細: ${JSON.stringify(userProjects, null, 2)}`);
+      }
       allProjects = [...allProjects, ...userProjects];
     }
     
