@@ -6,7 +6,10 @@ GitHubのIssueやProjectの情報を取得してチームの生産性を計測�
 
 - リポジトリの全Issueを取得（オープン・クローズ済み両方、プルリクエストも含む）
 - Issueの詳細情報（作成者、アサイン、ラベル、マイルストーンなど）を取得
-- ページネーション対応で大量のIssueも効率的に処理
+- リポジトリの全Project（v2）を取得
+- Project内の全タスク（Issue、Pull Request、Draft Issue）を取得
+- Projectのカスタムフィールド値も取得
+- ページネーション対応で大量のデータも効率的に処理
 - JSON形式で構造化されたデータを出力
 
 ## Inputs
@@ -39,26 +42,59 @@ JSON形式で取得したIssueデータの配列。各Issueには以下の情報
 
 取得したIssueの総数
 
+### `projects`
+
+JSON形式で取得したProjectデータの配列。各Projectには以下の情報が含まれます：
+- `id`: Project ID
+- `title`: Projectタイトル
+- `number`: Project番号
+- `url`: Project URL
+- `createdAt`: 作成日時
+- `updatedAt`: 更新日時
+- `closedAt`: クローズ日時
+- `state`: Projectの状態（open/closed）
+- `shortDescription`: 短い説明
+- `items`: Project内のタスク配列
+- `totalItems`: タスク総数
+
+各タスク（item）には以下の情報が含まれます：
+- `id`: タスクID
+- `type`: タスクタイプ（ISSUE、PULL_REQUEST、DRAFT_ISSUE）
+- `content`: タスクの内容（Issue、Pull Request、Draft Issueの詳細）
+- `fieldValues`: Projectのカスタムフィールド値
+
+### `project-count`
+
+取得したProjectの総数
+
+### `total-tasks`
+
+全Projectのタスク総数
+
 ## 使用例
 
 ```yaml
-name: Get Repository Issues
+name: Get Repository Metrics
 on:
   workflow_dispatch:
 
 jobs:
-  get-issues:
+  get-metrics:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Repository Issues
+      - name: Get Repository Metrics
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
         
-      - name: Display Issue Count
-        run: echo "Total issues: ${{ steps.get-issues.outputs.issue-count }}"
-        
-      - name: Save Issues to File
+      - name: Display Metrics
         run: |
-          echo '${{ steps.get-issues.outputs.issues }}' > issues.json
+          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
+          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
+          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
+        
+      - name: Save Data to Files
+        run: |
+          echo '${{ steps.get-metrics.outputs.issues }}' > issues.json
+          echo '${{ steps.get-metrics.outputs.projects }}' > projects.json
 ```

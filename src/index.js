@@ -1,6 +1,203 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+async function getAllProjects() {
+  const token = core.getInput("github-token");
+  const octokit = github.getOctokit(token);
+  
+  const { owner, repo } = github.context.repo;
+  
+  core.info(`リポジトリ ${owner}/${repo} のProjectを取得中...`);
+  
+  try {
+    // GraphQLクエリでプロジェクトを取得
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          projectsV2(first: 100) {
+            nodes {
+              id
+              title
+              number
+              url
+              createdAt
+              updatedAt
+              closedAt
+              state
+              shortDescription
+              items(first: 100) {
+                totalCount
+                nodes {
+                  id
+                  type
+                  content {
+                    ... on Issue {
+                      id
+                      number
+                      title
+                      state
+                      createdAt
+                      updatedAt
+                      closedAt
+                      url
+                      assignees(first: 10) {
+                        nodes {
+                          id
+                          login
+                        }
+                      }
+                      labels(first: 10) {
+                        nodes {
+                          id
+                          name
+                          color
+                        }
+                      }
+                    }
+                    ... on PullRequest {
+                      id
+                      number
+                      title
+                      state
+                      createdAt
+                      updatedAt
+                      closedAt
+                      url
+                      isDraft
+                      assignees(first: 10) {
+                        nodes {
+                          id
+                          login
+                        }
+                      }
+                      labels(first: 10) {
+                        nodes {
+                          id
+                          name
+                          color
+                        }
+                      }
+                    }
+                    ... on DraftIssue {
+                      id
+                      title
+                      body
+                      createdAt
+                      updatedAt
+                    }
+                  }
+                  fieldValues(first: 20) {
+                    nodes {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        field {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                          }
+                        }
+                        name
+                      }
+                      ... on ProjectV2ItemFieldTextValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        text
+                      }
+                      ... on ProjectV2ItemFieldNumberValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        number
+                      }
+                      ... on ProjectV2ItemFieldDateValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        date
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    const { repository } = await octokit.graphql(query, {
+      owner,
+      repo
+    });
+    
+    const projects = repository?.projectsV2?.nodes || [];
+    
+    core.info(`合計 ${projects.length}件のProjectを取得しました`);
+    
+    // プロジェクトデータを整形
+    const formattedProjects = projects.map(project => ({
+      id: project.id,
+      title: project.title,
+      number: project.number,
+      url: project.url,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      closedAt: project.closedAt,
+      state: project.state,
+      shortDescription: project.shortDescription,
+      items: project.items.nodes.map(item => ({
+        id: item.id,
+        type: item.type,
+        content: item.content ? {
+          id: item.content.id,
+          number: item.content.number,
+          title: item.content.title,
+          state: item.content.state,
+          createdAt: item.content.createdAt,
+          updatedAt: item.content.updatedAt,
+          closedAt: item.content.closedAt,
+          url: item.content.url,
+          isDraft: item.content.isDraft || false,
+          assignees: item.content.assignees?.nodes || [],
+          labels: item.content.labels?.nodes || [],
+          body: item.content.body || null
+        } : null,
+        fieldValues: item.fieldValues.nodes.map(fieldValue => ({
+          field: fieldValue.field,
+          value: fieldValue.name || fieldValue.text || fieldValue.number || fieldValue.date
+        }))
+      })),
+      totalItems: project.items.totalCount
+    }));
+    
+    // 出力として設定
+    core.setOutput("projects", JSON.stringify(formattedProjects));
+    core.setOutput("raw-projects", JSON.stringify(projects)); // 整形前の生データも出力
+    core.setOutput("project-count", projects.length.toString());
+    
+    // 全プロジェクトのタスク数を計算
+    const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
+    core.setOutput("total-tasks", totalTasks.toString());
+    
+    core.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
+    
+    return formattedProjects;
+    
+  } catch (error) {
+    core.error(`Project取得中にエラーが発生しました: ${error.message}`);
+    throw error;
+  }
+}
+
 async function getAllIssues() {
   const token = core.getInput("github-token");
   const octokit = github.getOctokit(token);
@@ -86,8 +283,26 @@ async function getAllIssues() {
   }
 }
 
+async function main() {
+  try {
+    // IssueとProjectの両方を取得
+    core.info("=== GitHub Project Metrics 実行開始 ===");
+    
+    // Issueを取得
+    await getAllIssues();
+    
+    // Projectを取得
+    await getAllProjects();
+    
+    core.info("=== GitHub Project Metrics 実行完了 ===");
+    
+  } catch (error) {
+    core.setFailed(error.message);
+  }
+}
+
 try {
-  await getAllIssues();
+  await main();
 } catch (error) {
   core.setFailed(error.message);
 }

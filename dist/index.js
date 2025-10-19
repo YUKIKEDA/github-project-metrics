@@ -1749,7 +1749,7 @@ function requireTimers () {
 	return timers;
 }
 
-var main = {exports: {}};
+var main$1 = {exports: {}};
 
 const require$3 = createRequire(import.meta.url);
 function __require$2() { return require$3("node:stream"); }
@@ -3296,7 +3296,7 @@ function requireUrlencoded () {
 var hasRequiredMain;
 
 function requireMain () {
-	if (hasRequiredMain) return main.exports;
+	if (hasRequiredMain) return main$1.exports;
 	hasRequiredMain = 1;
 
 	const WritableStream = __require$2().Writable;
@@ -3377,12 +3377,12 @@ function requireMain () {
 	  this._parser.write(chunk, cb);
 	};
 
-	main.exports = Busboy;
-	main.exports.default = Busboy;
-	main.exports.Busboy = Busboy;
+	main$1.exports = Busboy;
+	main$1.exports.default = Busboy;
+	main$1.exports.Busboy = Busboy;
 
-	main.exports.Dicer = Dicer;
-	return main.exports;
+	main$1.exports.Dicer = Dicer;
+	return main$1.exports;
 }
 
 var constants$3;
@@ -31248,6 +31248,203 @@ function requireGithub () {
 
 var githubExports = requireGithub();
 
+async function getAllProjects() {
+  const token = coreExports.getInput("github-token");
+  const octokit = githubExports.getOctokit(token);
+  
+  const { owner, repo } = githubExports.context.repo;
+  
+  coreExports.info(`リポジトリ ${owner}/${repo} のProjectを取得中...`);
+  
+  try {
+    // GraphQLクエリでプロジェクトを取得
+    const query = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          projectsV2(first: 100) {
+            nodes {
+              id
+              title
+              number
+              url
+              createdAt
+              updatedAt
+              closedAt
+              state
+              shortDescription
+              items(first: 100) {
+                totalCount
+                nodes {
+                  id
+                  type
+                  content {
+                    ... on Issue {
+                      id
+                      number
+                      title
+                      state
+                      createdAt
+                      updatedAt
+                      closedAt
+                      url
+                      assignees(first: 10) {
+                        nodes {
+                          id
+                          login
+                        }
+                      }
+                      labels(first: 10) {
+                        nodes {
+                          id
+                          name
+                          color
+                        }
+                      }
+                    }
+                    ... on PullRequest {
+                      id
+                      number
+                      title
+                      state
+                      createdAt
+                      updatedAt
+                      closedAt
+                      url
+                      isDraft
+                      assignees(first: 10) {
+                        nodes {
+                          id
+                          login
+                        }
+                      }
+                      labels(first: 10) {
+                        nodes {
+                          id
+                          name
+                          color
+                        }
+                      }
+                    }
+                    ... on DraftIssue {
+                      id
+                      title
+                      body
+                      createdAt
+                      updatedAt
+                    }
+                  }
+                  fieldValues(first: 20) {
+                    nodes {
+                      ... on ProjectV2ItemFieldSingleSelectValue {
+                        field {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                          }
+                        }
+                        name
+                      }
+                      ... on ProjectV2ItemFieldTextValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        text
+                      }
+                      ... on ProjectV2ItemFieldNumberValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        number
+                      }
+                      ... on ProjectV2ItemFieldDateValue {
+                        field {
+                          ... on ProjectV2Field {
+                            id
+                            name
+                          }
+                        }
+                        date
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    const { repository } = await octokit.graphql(query, {
+      owner,
+      repo
+    });
+    
+    const projects = repository?.projectsV2?.nodes || [];
+    
+    coreExports.info(`合計 ${projects.length}件のProjectを取得しました`);
+    
+    // プロジェクトデータを整形
+    const formattedProjects = projects.map(project => ({
+      id: project.id,
+      title: project.title,
+      number: project.number,
+      url: project.url,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt,
+      closedAt: project.closedAt,
+      state: project.state,
+      shortDescription: project.shortDescription,
+      items: project.items.nodes.map(item => ({
+        id: item.id,
+        type: item.type,
+        content: item.content ? {
+          id: item.content.id,
+          number: item.content.number,
+          title: item.content.title,
+          state: item.content.state,
+          createdAt: item.content.createdAt,
+          updatedAt: item.content.updatedAt,
+          closedAt: item.content.closedAt,
+          url: item.content.url,
+          isDraft: item.content.isDraft || false,
+          assignees: item.content.assignees?.nodes || [],
+          labels: item.content.labels?.nodes || [],
+          body: item.content.body || null
+        } : null,
+        fieldValues: item.fieldValues.nodes.map(fieldValue => ({
+          field: fieldValue.field,
+          value: fieldValue.name || fieldValue.text || fieldValue.number || fieldValue.date
+        }))
+      })),
+      totalItems: project.items.totalCount
+    }));
+    
+    // 出力として設定
+    coreExports.setOutput("projects", JSON.stringify(formattedProjects));
+    coreExports.setOutput("raw-projects", JSON.stringify(projects)); // 整形前の生データも出力
+    coreExports.setOutput("project-count", projects.length.toString());
+    
+    // 全プロジェクトのタスク数を計算
+    const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
+    coreExports.setOutput("total-tasks", totalTasks.toString());
+    
+    coreExports.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
+    
+    return formattedProjects;
+    
+  } catch (error) {
+    coreExports.error(`Project取得中にエラーが発生しました: ${error.message}`);
+    throw error;
+  }
+}
+
 async function getAllIssues() {
   const token = coreExports.getInput("github-token");
   const octokit = githubExports.getOctokit(token);
@@ -31333,8 +31530,26 @@ async function getAllIssues() {
   }
 }
 
+async function main() {
+  try {
+    // IssueとProjectの両方を取得
+    coreExports.info("=== GitHub Project Metrics 実行開始 ===");
+    
+    // Issueを取得
+    await getAllIssues();
+    
+    // Projectを取得
+    await getAllProjects();
+    
+    coreExports.info("=== GitHub Project Metrics 実行完了 ===");
+    
+  } catch (error) {
+    coreExports.setFailed(error.message);
+  }
+}
+
 try {
-  await getAllIssues();
+  await main();
 } catch (error) {
   coreExports.setFailed(error.message);
 }
