@@ -1,15 +1,16 @@
-name: Hello World
-description: Greet someone and record the time
+name: GitHub Project Metrics
+description: GitHubのIssueやProjectの情報を取得してチームの生産性を計測
 
 inputs:
-  who-to-greet: # id of input
-    description: Who to greet
+  github-token: # GitHub token for API access
+    description: GitHub token for accessing repository data
     required: true
-    default: World
 
 outputs:
-  time: # id of output
-    description: The time we greeted you
+  issues: # id of output
+    description: JSON形式で取得したIssueデータ
+  issue-count: # id of output
+    description: 取得したIssueの総数
 
 runs:
   using: node20
