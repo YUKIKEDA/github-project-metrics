@@ -52,7 +52,6 @@ JSON形式で取得したProjectデータの配列。各Projectには以下の�
 - `createdAt`: 作成日時
 - `updatedAt`: 更新日時
 - `closedAt`: クローズ日時
-- `state`: Projectの状態（open/closed）
 - `shortDescription`: 短い説明
 - `items`: Project内のタスク配列
 - `totalItems`: タスク総数

@@ -23,7 +23,6 @@ async function getAllProjects() {
               createdAt
               updatedAt
               closedAt
-              state
               shortDescription
               items(first: 100) {
                 totalCount
@@ -152,7 +151,6 @@ async function getAllProjects() {
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
       closedAt: project.closedAt,
-      state: project.state,
       shortDescription: project.shortDescription,
       items: project.items.nodes.map(item => ({
         id: item.id,
