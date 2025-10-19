@@ -75,6 +75,7 @@ async function getAllIssues() {
     
     // 出力として設定
     core.setOutput("issues", JSON.stringify(formattedIssues));
+    core.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
     core.setOutput("issue-count", allIssues.length.toString());
     
     core.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);

@@ -31322,6 +31322,7 @@ async function getAllIssues() {
     
     // 出力として設定
     coreExports.setOutput("issues", JSON.stringify(formattedIssues));
+    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
     coreExports.setOutput("issue-count", allIssues.length.toString());
     
     coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);

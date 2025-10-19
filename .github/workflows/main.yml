@@ -26,6 +26,12 @@ jobs:
         run: |
           echo "Total issues: ${{ steps.get-issues.outputs['issue-count'] }}"
 
+      - name: Display Raw Issues Data
+        run: |
+          echo "=== Raw Issues Data (Unformatted) ==="
+          echo '${{ steps.get-issues.outputs['raw-issues'] }}' | jq . || echo '${{ steps.get-issues.outputs['raw-issues'] }}'
+          echo "======================================="
+
       - name: Save Issues to File
         run: |
           echo '${{ steps.get-issues.outputs.issues }}' > issues.json

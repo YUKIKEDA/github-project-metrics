@@ -8,7 +8,9 @@ inputs:
 
 outputs:
   issues: # id of output
-    description: JSON形式で取得したIssueデータ
+    description: JSON形式で取得したIssueデータ（整形済み）
+  raw-issues: # id of output
+    description: JSON形式で取得したIssueデータ（整形前の生データ）
   issue-count: # id of output
     description: 取得したIssueの総数
 
