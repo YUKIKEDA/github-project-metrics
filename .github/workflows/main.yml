@@ -22,7 +22,8 @@ jobs:
 
       # Use the output from the `get-issues` step
       - name: Display Issue Count
-        run: echo "Total issues: ${{ steps.get-issues.outputs.issue-count }}"
+        run: |
+          echo "Total issues: ${{ steps.get-issues.outputs['issue-count'] }}"
 
       - name: Save Issues to File
         run: |
