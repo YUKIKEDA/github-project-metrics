@@ -31257,7 +31257,82 @@ async function getAllProjects() {
   coreExports.info(`リポジトリ ${owner}/${repo} のProjectを取得中...`);
   
   try {
-    // GraphQLクエリでプロジェクトを取得
+    // まずシンプルなクエリでプロジェクトの存在を確認
+    const simpleQuery = `
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          projectsV2(first: 100) {
+            totalCount
+            nodes {
+              id
+              title
+              number
+              url
+              createdAt
+              updatedAt
+              closedAt
+              shortDescription
+            }
+          }
+        }
+      }
+    `;
+    
+    coreExports.info("シンプルなクエリでプロジェクトを確認中...");
+    const { repository: simpleResult } = await octokit.graphql(simpleQuery, {
+      owner,
+      repo
+    });
+    
+    const simpleProjects = simpleResult?.projectsV2?.nodes || [];
+    coreExports.info(`シンプルクエリ結果: ${simpleProjects.length}件のプロジェクトが見つかりました`);
+    
+    if (simpleProjects.length === 0) {
+      coreExports.warning("このリポジトリにはProject（v2）が存在しません。");
+      
+      // ユーザーレベルのプロジェクトも確認してみる
+      coreExports.info("ユーザーレベルのプロジェクトを確認中...");
+      try {
+        const userQuery = `
+          query {
+            viewer {
+              projectsV2(first: 100) {
+                totalCount
+                nodes {
+                  id
+                  title
+                  number
+                  url
+                  createdAt
+                  updatedAt
+                  closedAt
+                  shortDescription
+                }
+              }
+            }
+          }
+        `;
+        
+        const { viewer } = await octokit.graphql(userQuery);
+        const userProjects = viewer?.projectsV2?.nodes || [];
+        coreExports.info(`ユーザーレベルのプロジェクト: ${userProjects.length}件`);
+        
+        if (userProjects.length > 0) {
+          coreExports.info("ユーザーレベルのプロジェクトが見つかりました。");
+          coreExports.info("注意: 現在の実装ではリポジトリレベルのプロジェクトのみを取得します。");
+        }
+      } catch (userError) {
+        coreExports.warning(`ユーザーレベルのプロジェクト確認でエラー: ${userError.message}`);
+      }
+      
+      coreExports.setOutput("projects", JSON.stringify([]));
+      coreExports.setOutput("raw-projects", JSON.stringify([]));
+      coreExports.setOutput("project-count", "0");
+      coreExports.setOutput("total-tasks", "0");
+      return [];
+    }
+    
+    // プロジェクトが存在する場合、詳細なクエリを実行
     const query = `
       query($owner: String!, $repo: String!) {
         repository(owner: $owner, name: $repo) {
