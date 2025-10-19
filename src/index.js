@@ -1,5 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import * as fs from "fs";
+import * as path from "path";
 
 async function getAllProjects() {
   const token = core.getInput("github-token");
@@ -315,6 +317,26 @@ async function getAllProjects() {
     core.info("=== Projectデータ（生データ） ===");
     core.info(JSON.stringify(projects, null, 2));
     
+    // JSONファイルを保存
+    try {
+      const workspacePath = process.env.GITHUB_WORKSPACE || '.';
+      const issuesPath = path.join(workspacePath, 'issues.json');
+      const projectsPath = path.join(workspacePath, 'projects.json');
+      
+      // issues.jsonファイルを保存（getAllIssuesから呼ばれる場合のみ）
+      if (global.issuesData) {
+        fs.writeFileSync(issuesPath, JSON.stringify(global.issuesData, null, 2));
+        core.info(`Issues data saved to ${issuesPath}`);
+      }
+      
+      // projects.jsonファイルを保存
+      fs.writeFileSync(projectsPath, JSON.stringify(formattedProjects, null, 2));
+      core.info(`Projects data saved to ${projectsPath}`);
+      
+    } catch (writeError) {
+      core.warning(`Failed to save JSON files: ${writeError.message}`);
+    }
+    
     return formattedProjects;
     
   } catch (error) {
@@ -401,6 +423,9 @@ async function getAllIssues() {
     core.setOutput("issue-count", allIssues.length.toString());
     
     core.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
+    
+    // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
+    global.issuesData = formattedIssues;
     
   } catch (error) {
     core.error(`Issue取得中にエラーが発生しました: ${error.message}`);
