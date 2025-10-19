@@ -18,6 +18,16 @@ GitHubのIssueやProjectの情報を取得してチームの生産性を計測�
 
 **必須** GitHub APIにアクセスするためのトークン。リポジトリの読み取り権限が必要です。
 
+### `project-scope`
+
+**必須** Project取得のスコープを指定します。
+- `user`: ユーザーレベルのプロジェクトを取得
+- `organization`: 組織レベルのプロジェクトを取得
+
+### `organization-name`
+
+**オプション** `project-scope`が`organization`の場合に、特定の組織名を指定します。必須です。
+
 ## Outputs
 
 ### `issues`
@@ -72,8 +82,10 @@ JSON形式で取得したProjectデータの配列。各Projectには以下の�
 
 ## 使用例
 
+### ユーザーレベルのプロジェクトを取得
+
 ```yaml
-name: Get Repository Metrics
+name: Get User Projects
 on:
   workflow_dispatch:
 
@@ -81,10 +93,11 @@ jobs:
   get-metrics:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Repository Metrics
+      - name: Get User Projects
         uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          project-scope: "user"
         
       - name: Display Metrics
         run: |
@@ -96,4 +109,29 @@ jobs:
         run: |
           echo '${{ steps.get-metrics.outputs.issues }}' > issues.json
           echo '${{ steps.get-metrics.outputs.projects }}' > projects.json
+```
+
+### 特定の組織のプロジェクトを取得
+
+```yaml
+name: Get Organization Projects
+on:
+  workflow_dispatch:
+
+jobs:
+  get-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Organization Projects
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          project-scope: "organization"
+          organization-name: "my-organization"
+        
+      - name: Display Metrics
+        run: |
+          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
+          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
+          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
 ```

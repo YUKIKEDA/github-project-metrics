@@ -3,52 +3,51 @@ import * as github from "@actions/github";
 
 async function getAllProjects() {
   const token = core.getInput("github-token");
+  const projectScope = core.getInput("project-scope");
+  const organizationName = core.getInput("organization-name");
   const octokit = github.getOctokit(token);
   
-  const { owner, repo } = github.context.repo;
-  
-  core.info(`リポジトリ ${owner}/${repo} のProjectを取得中...`);
+  core.info(`Project取得スコープ: ${projectScope}`);
   
   try {
-    // まずシンプルなクエリでプロジェクトの存在を確認
-    const simpleQuery = `
-      query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo) {
-          projectsV2(first: 100) {
-            totalCount
-            nodes {
-              id
-              title
-              number
-              url
-              createdAt
-              updatedAt
-              closedAt
-              shortDescription
+    let allProjects = [];
+    
+    // ユーザーレベルのプロジェクトを取得
+    if (projectScope === "user") {
+      core.info("ユーザーレベルのプロジェクトを確認中...");
+      const userQuery = `
+        query {
+          viewer {
+            projectsV2(first: 100) {
+              totalCount
+              nodes {
+                id
+                title
+                number
+                url
+                createdAt
+                updatedAt
+                closedAt
+                shortDescription
+              }
             }
           }
         }
-      }
-    `;
-    
-    core.info("シンプルなクエリでプロジェクトを確認中...");
-    const { repository: simpleResult } = await octokit.graphql(simpleQuery, {
-      owner,
-      repo
-    });
-    
-    const simpleProjects = simpleResult?.projectsV2?.nodes || [];
-    core.info(`シンプルクエリ結果: ${simpleProjects.length}件のプロジェクトが見つかりました`);
-    
-    if (simpleProjects.length === 0) {
-      core.warning("このリポジトリにはProject（v2）が存在しません。");
+      `;
       
-      // ユーザーレベルのプロジェクトも確認してみる
-      core.info("ユーザーレベルのプロジェクトを確認中...");
-      try {
-        const userQuery = `
-          query {
-            viewer {
+      const { viewer } = await octokit.graphql(userQuery);
+      const userProjects = viewer?.projectsV2?.nodes || [];
+      core.info(`ユーザーレベルのプロジェクト: ${userProjects.length}件`);
+      allProjects = [...allProjects, ...userProjects];
+    }
+    
+    // 組織レベルのプロジェクトを取得
+    if (projectScope === "organization") {
+      if (organizationName) {
+        core.info(`指定された組織 ${organizationName} のプロジェクトを確認中...`);
+        const orgQuery = `
+          query($orgName: String!) {
+            organization(login: $orgName) {
               projectsV2(first: 100) {
                 totalCount
                 nodes {
@@ -66,18 +65,23 @@ async function getAllProjects() {
           }
         `;
         
-        const { viewer } = await octokit.graphql(userQuery);
-        const userProjects = viewer?.projectsV2?.nodes || [];
-        core.info(`ユーザーレベルのプロジェクト: ${userProjects.length}件`);
+        const { organization } = await octokit.graphql(orgQuery, {
+          orgName: organizationName
+        });
         
-        if (userProjects.length > 0) {
-          core.info("ユーザーレベルのプロジェクトが見つかりました。");
-          core.info("注意: 現在の実装ではリポジトリレベルのプロジェクトのみを取得します。");
-        }
-      } catch (userError) {
-        core.warning(`ユーザーレベルのプロジェクト確認でエラー: ${userError.message}`);
+        const orgProjects = organization?.projectsV2?.nodes || [];
+        core.info(`組織 ${organizationName} のプロジェクト: ${orgProjects.length}件`);
+        allProjects = [...allProjects, ...orgProjects];
+      } else {
+        core.error("project-scopeがorganizationの場合、organization-nameの指定が必要です。");
+        throw new Error("organization-name is required when project-scope is organization");
       }
-      
+    }
+    
+    core.info(`合計 ${allProjects.length}件のプロジェクトが見つかりました`);
+    
+    if (allProjects.length === 0) {
+      core.warning("Project（v2）が見つかりませんでした。");
       core.setOutput("projects", JSON.stringify([]));
       core.setOutput("raw-projects", JSON.stringify([]));
       core.setOutput("project-count", "0");
@@ -86,117 +90,125 @@ async function getAllProjects() {
     }
     
     // プロジェクトが存在する場合、詳細なクエリを実行
-    const query = `
-      query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo) {
-          projectsV2(first: 100) {
-            nodes {
-              id
-              title
-              number
-              url
-              createdAt
-              updatedAt
-              closedAt
-              shortDescription
-              items(first: 100) {
-                totalCount
-                nodes {
-                  id
-                  type
-                  content {
-                    ... on Issue {
-                      id
-                      number
-                      title
-                      state
-                      createdAt
-                      updatedAt
-                      closedAt
-                      url
-                      assignees(first: 10) {
-                        nodes {
-                          id
-                          login
-                        }
-                      }
-                      labels(first: 10) {
-                        nodes {
-                          id
-                          name
-                          color
-                        }
-                      }
-                    }
-                    ... on PullRequest {
-                      id
-                      number
-                      title
-                      state
-                      createdAt
-                      updatedAt
-                      closedAt
-                      url
-                      isDraft
-                      assignees(first: 10) {
-                        nodes {
-                          id
-                          login
-                        }
-                      }
-                      labels(first: 10) {
-                        nodes {
-                          id
-                          name
-                          color
-                        }
-                      }
-                    }
-                    ... on DraftIssue {
-                      id
-                      title
-                      body
-                      createdAt
-                      updatedAt
-                    }
-                  }
-                  fieldValues(first: 20) {
-                    nodes {
-                      ... on ProjectV2ItemFieldSingleSelectValue {
-                        field {
-                          ... on ProjectV2SingleSelectField {
-                            id
-                            name
-                          }
-                        }
-                        name
-                      }
-                      ... on ProjectV2ItemFieldTextValue {
-                        field {
-                          ... on ProjectV2Field {
-                            id
-                            name
-                          }
-                        }
-                        text
-                      }
-                      ... on ProjectV2ItemFieldNumberValue {
-                        field {
-                          ... on ProjectV2Field {
-                            id
-                            name
-                          }
-                        }
+    core.info("プロジェクトの詳細情報を取得中...");
+    const detailedProjects = [];
+    
+    for (const project of allProjects) {
+      try {
+        const projectId = project.id;
+        core.info(`プロジェクト "${project.title}" の詳細情報を取得中...`);
+        
+        const detailQuery = `
+          query($projectId: ID!) {
+            node(id: $projectId) {
+              ... on ProjectV2 {
+                id
+                title
+                number
+                url
+                createdAt
+                updatedAt
+                closedAt
+                shortDescription
+                items(first: 100) {
+                  totalCount
+                  nodes {
+                    id
+                    type
+                    content {
+                      ... on Issue {
+                        id
                         number
-                      }
-                      ... on ProjectV2ItemFieldDateValue {
-                        field {
-                          ... on ProjectV2Field {
+                        title
+                        state
+                        createdAt
+                        updatedAt
+                        closedAt
+                        url
+                        assignees(first: 10) {
+                          nodes {
                             id
-                            name
+                            login
                           }
                         }
-                        date
+                        labels(first: 10) {
+                          nodes {
+                            id
+                            name
+                            color
+                          }
+                        }
+                      }
+                      ... on PullRequest {
+                        id
+                        number
+                        title
+                        state
+                        createdAt
+                        updatedAt
+                        closedAt
+                        url
+                        isDraft
+                        assignees(first: 10) {
+                          nodes {
+                            id
+                            login
+                          }
+                        }
+                        labels(first: 10) {
+                          nodes {
+                            id
+                            name
+                            color
+                          }
+                        }
+                      }
+                      ... on DraftIssue {
+                        id
+                        title
+                        body
+                        createdAt
+                        updatedAt
+                      }
+                    }
+                    fieldValues(first: 20) {
+                      nodes {
+                        ... on ProjectV2ItemFieldSingleSelectValue {
+                          field {
+                            ... on ProjectV2SingleSelectField {
+                              id
+                              name
+                            }
+                          }
+                          name
+                        }
+                        ... on ProjectV2ItemFieldTextValue {
+                          field {
+                            ... on ProjectV2Field {
+                              id
+                              name
+                            }
+                          }
+                          text
+                        }
+                        ... on ProjectV2ItemFieldNumberValue {
+                          field {
+                            ... on ProjectV2Field {
+                              id
+                              name
+                            }
+                          }
+                          number
+                        }
+                        ... on ProjectV2ItemFieldDateValue {
+                          field {
+                            ... on ProjectV2Field {
+                              id
+                              name
+                            }
+                          }
+                          date
+                        }
                       }
                     }
                   }
@@ -204,16 +216,23 @@ async function getAllProjects() {
               }
             }
           }
+        `;
+        
+        const { node } = await octokit.graphql(detailQuery, {
+          projectId: projectId
+        });
+        
+        if (node) {
+          detailedProjects.push(node);
         }
+      } catch (error) {
+        core.warning(`プロジェクト "${project.title}" の詳細取得でエラー: ${error.message}`);
+        // エラーが発生した場合でも、基本情報は含める
+        detailedProjects.push(project);
       }
-    `;
+    }
     
-    const { repository } = await octokit.graphql(query, {
-      owner,
-      repo
-    });
-    
-    const projects = repository?.projectsV2?.nodes || [];
+    const projects = detailedProjects;
     
     core.info(`合計 ${projects.length}件のProjectを取得しました`);
     
