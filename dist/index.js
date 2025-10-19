@@ -31338,8 +31338,12 @@ async function getAllProjects() {
           orgName: organizationName
         });
         
+        coreExports.info(`組織GraphQLレスポンス: ${JSON.stringify(organization, null, 2)}`);
         const orgProjects = organization?.projectsV2?.nodes || [];
         coreExports.info(`組織 ${organizationName} のプロジェクト: ${orgProjects.length}件`);
+        if (orgProjects.length > 0) {
+          coreExports.info(`組織プロジェクト詳細: ${JSON.stringify(orgProjects, null, 2)}`);
+        }
         allProjects = [...allProjects, ...orgProjects];
       } else {
         coreExports.error("project-scopeがorganizationの場合、organization-nameの指定が必要です。");

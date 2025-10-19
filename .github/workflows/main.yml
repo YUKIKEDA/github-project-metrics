@@ -20,8 +20,8 @@ jobs:
         id: get-metrics
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          project-scope: "user"  # user または organization
-          # organization-name: "my-organization"  # organizationスコープの場合に指定
+          project-scope: "organization"  # user または organization
+          organization-name: "YUKIKEDA"  # organizationスコープの場合に指定
 
       # Use the output from the `get-metrics` step
       - name: Display Metrics Count

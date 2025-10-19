@@ -91,8 +91,12 @@ async function getAllProjects() {
           orgName: organizationName
         });
         
+        core.info(`組織GraphQLレスポンス: ${JSON.stringify(organization, null, 2)}`);
         const orgProjects = organization?.projectsV2?.nodes || [];
         core.info(`組織 ${organizationName} のプロジェクト: ${orgProjects.length}件`);
+        if (orgProjects.length > 0) {
+          core.info(`組織プロジェクト詳細: ${JSON.stringify(orgProjects, null, 2)}`);
+        }
         allProjects = [...allProjects, ...orgProjects];
       } else {
         core.error("project-scopeがorganizationの場合、organization-nameの指定が必要です。");
