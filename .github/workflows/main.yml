@@ -50,6 +50,6 @@ jobs:
 
       - name: Save Data to Files
         run: |
-          echo '${{ steps.get-metrics.outputs.issues }}' > issues.json
-          echo '${{ steps.get-metrics.outputs.projects }}' > projects.json
+          echo '${{ steps.get-metrics.outputs.issues }}' | jq . > issues.json
+          echo '${{ steps.get-metrics.outputs.projects }}' | jq . > projects.json
           echo "Data saved to issues.json and projects.json"
