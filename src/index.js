@@ -1,3 +1,4 @@
+//@ts-check
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as fs from "fs";
@@ -282,6 +283,7 @@ async function getAllProjects() {
     if (projectScope === "organization") {
       if (organizationName) {
         core.info(`指定された組織 ${organizationName} のプロジェクトを確認中...`);
+        // @ts-ignore - organizationNameはif文で確認済みなので、stringであることが保証されている
         allProjects = await fetchAllProjects(octokit, 'organization', organizationName);
         core.info(`組織 ${organizationName} のプロジェクト（全件）: ${allProjects.length}件`);
       } else {
@@ -445,10 +447,13 @@ async function getAllIssues() {
         login: assignee.login,
         id: assignee.id
       })) : [],
-      labels: issue.labels ? issue.labels.map(label => ({
-        name: label.name,
-        color: label.color
-      })) : [],
+      labels: issue.labels ? issue.labels.map(label => {
+        const labelObj = typeof label === 'string' ? { name: label, color: null } : label;
+        return {
+          name: typeof labelObj.name === 'string' ? labelObj.name : '',
+          color: typeof labelObj.color === 'string' ? labelObj.color : null
+        };
+      }) : [],
       milestone: issue.milestone ? {
         title: issue.milestone.title,
         state: issue.milestone.state
