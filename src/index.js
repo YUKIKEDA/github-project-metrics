@@ -158,7 +158,12 @@ const PROJECTS_FRAGMENT = `
   }
 `;
 
-// プロジェクトのアイテムを全件取得する共通関数
+/**
+ * プロジェクトのアイテムを全件取得する共通関数
+ * @param {import('@octokit/core').Octokit} octokit - Octokitインスタンス
+ * @param {string} projectId - プロジェクトID
+ * @returns {Promise<Array<any>>} プロジェクトアイテムの配列
+ */
 async function getAllProjectItems(octokit, projectId) {
   const allItems = [];
   let hasNextPage = true;
@@ -200,7 +205,13 @@ async function getAllProjectItems(octokit, projectId) {
   return allItems;
 }
 
-// プロジェクトを全件取得する共通関数
+/**
+ * プロジェクトを全件取得する共通関数
+ * @param {import('@octokit/core').Octokit} octokit - Octokitインスタンス
+ * @param {('user'|'organization')} queryType - クエリタイプ（ユーザーまたは組織）
+ * @param {string|null} [organizationName=null] - 組織名（queryTypeが'organization'の場合に必要）
+ * @returns {Promise<Array<any>>} プロジェクトの配列
+ */
 async function fetchAllProjects(octokit, queryType, organizationName = null) {
   const allProjects = [];
   let hasNextPage = true;
@@ -221,6 +232,9 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
         }
       `;
     } else if (queryType === 'organization') {
+      if (!organizationName) {
+        throw new Error('organizationName is required when queryType is organization');
+      }
       query = `
         query($orgName: String!, $after: String) {
           organization(login: $orgName) {
@@ -231,6 +245,10 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
         }
       `;
       variables.orgName = organizationName;
+    }
+    
+    if (!query) {
+      throw new Error('Query is not defined');
     }
     
     const result = await octokit.graphql(query, variables);
@@ -244,7 +262,7 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
       
       // 各プロジェクトのアイテムを全件取得
       for (const project of projects) {
-        if (project.items && project.items.pageInfo.hasNextPage) {
+        if (project.items && project.items.pageInfo.hasNextPage && project.id) {
           const allItems = await getAllProjectItems(octokit, project.id);
           project.items.nodes = allItems;
         }
@@ -261,6 +279,11 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
   return allProjects;
 }
 
+/**
+ * GitHubプロジェクト（v2）を取得し、整形して出力する
+ * @returns {Promise<Array<any>>} 整形されたプロジェクトデータの配列
+ * @throws {Error} エラーが発生した場合
+ */
 async function getAllProjects() {
   const token = core.getInput("github-token");
   const projectScope = core.getInput("project-scope");
@@ -389,6 +412,11 @@ async function getAllProjects() {
   }
 }
 
+/**
+ * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
+ * @returns {Promise<void>}
+ * @throws {Error} エラーが発生した場合
+ */
 async function getAllIssues() {
   const token = core.getInput("github-token");
   const octokit = github.getOctokit(token);
@@ -480,6 +508,12 @@ async function getAllIssues() {
   }
 }
 
+/**
+ * メイン実行関数
+ * IssueとProjectの両方を取得して処理する
+ * @returns {Promise<void>}
+ * @throws {Error} エラーが発生した場合
+ */
 async function main() {
   try {
     // IssueとProjectの両方を取得
