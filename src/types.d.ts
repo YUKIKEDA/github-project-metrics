@@ -253,13 +253,13 @@ declare global {
    */
   interface ProjectMilestoneValue {
     /** マイルストーンID */
-    milestoneId: string;
+    id: string;
     /** マイルストーンタイトル */
     title: string;
     /** マイルストーン説明 */
     description: string | null;
     /** 期日（ISO 8601形式） */
-    dueDate: string | null;
+    dueOn: string | null;
   }
 
   /**

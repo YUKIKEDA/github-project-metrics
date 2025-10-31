@@ -116,15 +116,17 @@ export const FIELD_VALUE_FRAGMENT = `
   }
   ... on ProjectV2ItemFieldMilestoneValue {
     field {
-      ... on ProjectV2MilestoneField {
+      ... on ProjectV2Field {
         id
         name
       }
     }
-    milestoneId
-    title
-    description
-    dueDate
+    milestone {
+      id
+      title
+      description
+      dueOn
+    }
   }
   ... on ProjectV2ItemFieldUserValue {
     field {

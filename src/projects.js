@@ -107,11 +107,11 @@ export async function getAllProjects() {
           } : null;
           
           // Milestoneフィールド値
-          const milestone = fieldValueAny.milestoneId ? {
-            milestoneId: fieldValueAny.milestoneId,
-            title: fieldValueAny.title || '',
-            description: fieldValueAny.description || null,
-            dueDate: fieldValueAny.dueDate || null
+          const milestone = fieldValueAny.milestone ? {
+            id: fieldValueAny.milestone.id || '',
+            title: fieldValueAny.milestone.title || '',
+            description: fieldValueAny.milestone.description || null,
+            dueOn: fieldValueAny.milestone.dueOn || null
           } : null;
           
           // Userフィールド値
