@@ -84,10 +84,51 @@ export async function getAllProjects() {
           labels: item.content.labels?.nodes || [],
           body: item.content.body || null
         } : null,
-        fieldValues: item.fieldValues.nodes.map(fieldValue => ({
-          field: fieldValue.field,
-          value: fieldValue.name || fieldValue.text || fieldValue.number || fieldValue.date
-        }))
+        fieldValues: item.fieldValues.nodes.map(fieldValue => {
+          // @ts-ignore - GitHub APIのフィールド値オブジェクトは動的なプロパティを持つ
+          const fieldValueAny = /** @type {any} */ (fieldValue);
+          
+          // フィールド名を取得（Status、Iteration、Start Date、End Date、Estimationなど）
+          const fieldName = fieldValue.field?.name || '';
+          
+          // 基本フィールド値（SingleSelect、Text、Number、Date）
+          // SingleSelectの場合: fieldValueAny.name に選択肢名が入る（例："Todo"、"In Progress"）
+          // Textの場合: fieldValueAny.text にテキストが入る
+          // Numberの場合: fieldValueAny.number に数値が入る
+          // Dateの場合: fieldValueAny.date に日時文字列が入る
+          let value = fieldValueAny.name || fieldValueAny.text || fieldValueAny.number || fieldValueAny.date || null;
+          
+          // Iterationフィールド値（フィールド名が"Iteration"の場合）
+          const iteration = fieldValueAny.iterationId ? {
+            iterationId: fieldValueAny.iterationId,
+            title: fieldValueAny.title || '',
+            startDate: fieldValueAny.startDate || '',
+            duration: fieldValueAny.duration || 0
+          } : null;
+          
+          // Milestoneフィールド値
+          const milestone = fieldValueAny.milestoneId ? {
+            milestoneId: fieldValueAny.milestoneId,
+            title: fieldValueAny.title || '',
+            description: fieldValueAny.description || null,
+            dueDate: fieldValueAny.dueDate || null
+          } : null;
+          
+          // Userフィールド値
+          const users = fieldValueAny.users?.nodes ? fieldValueAny.users.nodes.map((/** @type {any} */ user) => ({
+            id: user.id,
+            login: user.login
+          })) : null;
+          
+          return {
+            field: fieldValue.field,
+            fieldName: fieldName, // フィールド名を明示的に追加（Status、Start Date、End Date、Estimation、Iterationなど）
+            value: value,
+            iteration: iteration,
+            milestone: milestone,
+            users: users
+          };
+        })
       })),
       totalItems: project.items.totalCount
     }));

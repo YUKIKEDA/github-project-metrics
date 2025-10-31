@@ -45,6 +45,83 @@ declare global {
   }
 
   /**
+   * Issueイベントのタイプ
+   */
+  type IssueEventType = 
+    | "assigned"
+    | "unassigned"
+    | "labeled"
+    | "unlabeled"
+    | "milestoned"
+    | "demilestoned"
+    | "closed"
+    | "reopened"
+    | "referenced"
+    | "renamed"
+    | "locked"
+    | "unlocked"
+    | "head_ref_deleted"
+    | "head_ref_restored"
+    | "head_ref_force_pushed"
+    | "base_ref_force_pushed"
+    | "converted_note_to_issue"
+    | "moved_columns_in_project"
+    | "added_to_project"
+    | "removed_from_project"
+    | "review_requested"
+    | "review_request_removed"
+    | "ready_for_review"
+    | "merged"
+    | "deployed"
+    | "connected"
+    | "disconnected"
+    | "subscribed"
+    | "unsubscribed";
+
+  /**
+   * Issueイベント情報
+   */
+  interface IssueEvent {
+    /** イベントID */
+    id: number;
+    /** イベントタイプ */
+    event: IssueEventType;
+    /** イベント作成日時（ISO 8601形式） */
+    created_at: string;
+    /** イベント作成者 */
+    actor: User | null;
+    /** アサイニーされたユーザー（assigned/unassignedイベントの場合） */
+    assignee: User | null;
+    /** 追加/削除されたラベル（labeled/unlabeledイベントの場合） */
+    label: Label | null;
+    /** 追加/削除されたマイルストーン（milestoned/demilestonedイベントの場合） */
+    milestone: {
+      /** マイルストーンタイトル */
+      title: string;
+    } | null;
+    /** リネーム前のタイトル（renamedイベントの場合） */
+    rename: {
+      /** 変更前のタイトル */
+      from: string;
+      /** 変更後のタイトル */
+      to: string;
+    } | null;
+    /** レビューリクエストされたユーザー（review_requested/review_request_removedイベントの場合） */
+    requested_reviewer: User | null;
+    /** レビューリクエストされたチーム（review_requested/review_request_removedイベントの場合） */
+    requested_team: {
+      /** チーム名 */
+      name: string;
+      /** チームID */
+      id: number;
+    } | null;
+    /** コミットID（head_ref_force_pushed/base_ref_force_pushedイベントの場合） */
+    commit_id: string | null;
+    /** コミットURL（head_ref_force_pushed/base_ref_force_pushedイベントの場合） */
+    commit_url: string | null;
+  }
+
+  /**
    * GitHubリポジトリから取得したIssue（プルリクエスト含む）のデータ型
    */
   interface Issue {
@@ -76,6 +153,8 @@ declare global {
     pull_request: boolean;
     /** ドラフトかどうかのフラグ（プルリクエストの場合） */
     draft: boolean;
+    /** Issueイベントの配列（ステータス変更、ラベル変更、アサイニーなど） */
+    events: IssueEvent[];
   }
 
   /**
@@ -156,13 +235,49 @@ declare global {
   }
 
   /**
+   * Projectのイテレーションフィールド値
+   */
+  interface ProjectIterationValue {
+    /** イテレーションID */
+    iterationId: string;
+    /** イテレーションタイトル */
+    title: string;
+    /** 開始日時（ISO 8601形式） */
+    startDate: string;
+    /** 期間（日数） */
+    duration: number;
+  }
+
+  /**
+   * Projectのマイルストーンフィールド値
+   */
+  interface ProjectMilestoneValue {
+    /** マイルストーンID */
+    milestoneId: string;
+    /** マイルストーンタイトル */
+    title: string;
+    /** マイルストーン説明 */
+    description: string | null;
+    /** 期日（ISO 8601形式） */
+    dueDate: string | null;
+  }
+
+  /**
    * Projectのカスタムフィールド値
    */
   interface ProjectFieldValue {
     /** フィールド情報 */
     field: ProjectField | null;
+    /** フィールド名（Status、Iteration、Start Date、End Date、Estimationなど） */
+    fieldName: string;
     /** フィールド値（SingleSelectの場合は選択肢名、Textの場合はテキスト、Numberの場合は数値、Dateの場合は日時文字列） */
     value: string | number | null;
+    /** イテレーションフィールド値（Iterationフィールドの場合） */
+    iteration: ProjectIterationValue | null;
+    /** マイルストーンフィールド値（Milestoneフィールドの場合） */
+    milestone: ProjectMilestoneValue | null;
+    /** ユーザーフィールド値（Userフィールドの場合） */
+    users: ProjectItemAssignee[] | null;
   }
 
   /**

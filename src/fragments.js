@@ -102,6 +102,44 @@ export const FIELD_VALUE_FRAGMENT = `
     }
     date
   }
+  ... on ProjectV2ItemFieldIterationValue {
+    field {
+      ... on ProjectV2IterationField {
+        id
+        name
+      }
+    }
+    iterationId
+    title
+    startDate
+    duration
+  }
+  ... on ProjectV2ItemFieldMilestoneValue {
+    field {
+      ... on ProjectV2MilestoneField {
+        id
+        name
+      }
+    }
+    milestoneId
+    title
+    description
+    dueDate
+  }
+  ... on ProjectV2ItemFieldUserValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    users(first: 10) {
+      nodes {
+        id
+        login
+      }
+    }
+  }
 `;
 
 export const ITEM_FRAGMENT = `
@@ -112,7 +150,7 @@ export const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 20) {
+  fieldValues(first: 50) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
