@@ -31300,9 +31300,79 @@ async function getAllIssues() {
     
     coreExports.info(`合計 ${allIssues.length}件のIssueを取得しました`);
     
+    // 各Issueのイベントを取得
+    coreExports.info("各Issueのイベントを取得中...");
+    const issuesWithEvents = await Promise.all(
+      allIssues.map(async (issue) => {
+        try {
+          // Issueのイベントを取得
+          const allEvents = [];
+          let eventPage = 1;
+          const eventsPerPage = 100;
+          
+          // Issueイベントを取得（issues.listEvents）
+          while (true) {
+            try {
+              const { data: events } = await octokit.rest.issues.listEvents({
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: eventsPerPage,
+                page: eventPage
+              });
+              
+              if (events.length === 0) {
+                break;
+              }
+              
+              allEvents.push(...events);
+              
+              if (events.length < eventsPerPage) {
+                break;
+              }
+              
+              eventPage++;
+            } catch (eventError) {
+              // プルリクエストの場合はイベント取得が失敗する可能性があるため、エラーを無視
+              if (eventError.status === 404) {
+                coreExports.warning(`Issue #${issue.number} のイベントを取得できませんでした（404エラー）`);
+              } else {
+                coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${eventError.message}`);
+              }
+              break;
+            }
+          }
+          
+          // イベント取得結果をログ出力（デバッグ用）
+          if (allEvents.length > 0) {
+            coreExports.info(`Issue #${issue.number}: ${allEvents.length}件のイベントを取得しました`);
+          }
+          
+          return {
+            issue,
+            events: allEvents
+          };
+        } catch (error) {
+          coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${error.message}`);
+          return {
+            issue,
+            events: []
+          };
+        }
+      })
+    );
+    
+    coreExports.info("イベント取得が完了しました");
+    
+    // イベント取得結果を確認
+    const totalEvents = issuesWithEvents.reduce((sum, { events }) => sum + events.length, 0);
+    const issuesWithNoEvents = issuesWithEvents.filter(({ events }) => events.length === 0).length;
+    coreExports.info(`取得したイベント総数: ${totalEvents}件`);
+    coreExports.info(`イベントが0件のIssue: ${issuesWithNoEvents}件`);
+    
     // Issueデータを整形
     /** @type {Issue[]} */
-    const formattedIssues = allIssues.map(issue => ({
+    const formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
       number: issue.number,
       title: issue.title,
       state: /** @type {IssueState} */ (issue.state),
@@ -31331,7 +31401,45 @@ async function getAllIssues() {
       comments: issue.comments,
       body: issue.body || null,
       pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
-      draft: issue.draft || false // ドラフトかどうかのフラグ（プルリクエストの場合）
+      draft: issue.draft || false, // ドラフトかどうかのフラグ（プルリクエストの場合）
+      events: events.length > 0 ? events.map(event => {
+        // @ts-ignore - GitHub APIのイベントオブジェクトは動的なプロパティを持つ
+        const eventAny = /** @type {any} */ (event);
+        return {
+          id: event.id,
+          event: /** @type {IssueEventType} */ (event.event),
+          created_at: event.created_at,
+          actor: event.actor ? {
+            login: event.actor.login,
+            id: event.actor.id
+          } : null,
+          assignee: eventAny.assignee ? {
+            login: eventAny.assignee.login,
+            id: eventAny.assignee.id
+          } : null,
+          label: eventAny.label ? {
+            name: eventAny.label.name,
+            color: eventAny.label.color || null
+          } : null,
+          milestone: eventAny.milestone ? {
+            title: eventAny.milestone.title
+          } : null,
+          rename: eventAny.rename ? {
+            from: eventAny.rename.from,
+            to: eventAny.rename.to
+          } : null,
+          requested_reviewer: eventAny.requested_reviewer ? {
+            login: eventAny.requested_reviewer.login,
+            id: eventAny.requested_reviewer.id
+          } : null,
+          requested_team: eventAny.requested_team ? {
+            name: eventAny.requested_team.name,
+            id: eventAny.requested_team.id
+          } : null,
+          commit_id: eventAny.commit_id || null,
+          commit_url: eventAny.commit_url || null
+        };
+      }) : []
     }));
     
     // 出力として設定
@@ -31355,6 +31463,26 @@ async function getAllIssues() {
     coreExports.info(`オープン: ${openIssues}件`);
     coreExports.info(`クローズ: ${closedIssues}件`);
     coreExports.info(`プルリクエスト: ${pullRequests}件`);
+    
+    // イベントサマリー
+    const issuesWithEventsCount = formattedIssues.filter(issue => issue.events.length > 0).length;
+    const totalEventCount = formattedIssues.reduce((sum, issue) => sum + issue.events.length, 0);
+    coreExports.info(`イベントがあるIssue: ${issuesWithEventsCount}件`);
+    coreExports.info(`イベント総数: ${totalEventCount}件`);
+    
+    // イベントタイプ別の集計
+    const eventTypeCounts = {};
+    formattedIssues.forEach(issue => {
+      issue.events.forEach(event => {
+        eventTypeCounts[event.event] = (eventTypeCounts[event.event] || 0) + 1;
+      });
+    });
+    if (Object.keys(eventTypeCounts).length > 0) {
+      coreExports.info("=== イベントタイプ別の集計 ===");
+      Object.entries(eventTypeCounts).forEach(([eventType, count]) => {
+        coreExports.info(`${eventType}: ${count}件`);
+      });
+    }
     
     return formattedIssues;
     
@@ -31468,6 +31596,44 @@ const FIELD_VALUE_FRAGMENT = `
     }
     date
   }
+  ... on ProjectV2ItemFieldIterationValue {
+    field {
+      ... on ProjectV2IterationField {
+        id
+        name
+      }
+    }
+    iterationId
+    title
+    startDate
+    duration
+  }
+  ... on ProjectV2ItemFieldMilestoneValue {
+    field {
+      ... on ProjectV2MilestoneField {
+        id
+        name
+      }
+    }
+    milestoneId
+    title
+    description
+    dueDate
+  }
+  ... on ProjectV2ItemFieldUserValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    users(first: 10) {
+      nodes {
+        id
+        login
+      }
+    }
+  }
 `;
 
 const ITEM_FRAGMENT = `
@@ -31478,7 +31644,7 @@ const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 20) {
+  fieldValues(first: 50) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
@@ -31728,10 +31894,51 @@ async function getAllProjects() {
           labels: item.content.labels?.nodes || [],
           body: item.content.body || null
         } : null,
-        fieldValues: item.fieldValues.nodes.map(fieldValue => ({
-          field: fieldValue.field,
-          value: fieldValue.name || fieldValue.text || fieldValue.number || fieldValue.date
-        }))
+        fieldValues: item.fieldValues.nodes.map(fieldValue => {
+          // @ts-ignore - GitHub APIのフィールド値オブジェクトは動的なプロパティを持つ
+          const fieldValueAny = /** @type {any} */ (fieldValue);
+          
+          // フィールド名を取得（Status、Iteration、Start Date、End Date、Estimationなど）
+          const fieldName = fieldValue.field?.name || '';
+          
+          // 基本フィールド値（SingleSelect、Text、Number、Date）
+          // SingleSelectの場合: fieldValueAny.name に選択肢名が入る（例："Todo"、"In Progress"）
+          // Textの場合: fieldValueAny.text にテキストが入る
+          // Numberの場合: fieldValueAny.number に数値が入る
+          // Dateの場合: fieldValueAny.date に日時文字列が入る
+          let value = fieldValueAny.name || fieldValueAny.text || fieldValueAny.number || fieldValueAny.date || null;
+          
+          // Iterationフィールド値（フィールド名が"Iteration"の場合）
+          const iteration = fieldValueAny.iterationId ? {
+            iterationId: fieldValueAny.iterationId,
+            title: fieldValueAny.title || '',
+            startDate: fieldValueAny.startDate || '',
+            duration: fieldValueAny.duration || 0
+          } : null;
+          
+          // Milestoneフィールド値
+          const milestone = fieldValueAny.milestoneId ? {
+            milestoneId: fieldValueAny.milestoneId,
+            title: fieldValueAny.title || '',
+            description: fieldValueAny.description || null,
+            dueDate: fieldValueAny.dueDate || null
+          } : null;
+          
+          // Userフィールド値
+          const users = fieldValueAny.users?.nodes ? fieldValueAny.users.nodes.map((/** @type {any} */ user) => ({
+            id: user.id,
+            login: user.login
+          })) : null;
+          
+          return {
+            field: fieldValue.field,
+            fieldName: fieldName, // フィールド名を明示的に追加（Status、Start Date、End Date、Estimation、Iterationなど）
+            value: value,
+            iteration: iteration,
+            milestone: milestone,
+            users: users
+          };
+        })
       })),
       totalItems: project.items.totalCount
     }));
