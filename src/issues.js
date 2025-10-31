@@ -50,9 +50,79 @@ export async function getAllIssues() {
     
     core.info(`合計 ${allIssues.length}件のIssueを取得しました`);
     
+    // 各Issueのイベントを取得
+    core.info("各Issueのイベントを取得中...");
+    const issuesWithEvents = await Promise.all(
+      allIssues.map(async (issue) => {
+        try {
+          // Issueのイベントを取得
+          const allEvents = [];
+          let eventPage = 1;
+          const eventsPerPage = 100;
+          
+          // Issueイベントを取得（issues.listEvents）
+          while (true) {
+            try {
+              const { data: events } = await octokit.rest.issues.listEvents({
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: eventsPerPage,
+                page: eventPage
+              });
+              
+              if (events.length === 0) {
+                break;
+              }
+              
+              allEvents.push(...events);
+              
+              if (events.length < eventsPerPage) {
+                break;
+              }
+              
+              eventPage++;
+            } catch (eventError) {
+              // プルリクエストの場合はイベント取得が失敗する可能性があるため、エラーを無視
+              if (eventError.status === 404) {
+                core.warning(`Issue #${issue.number} のイベントを取得できませんでした（404エラー）`);
+              } else {
+                core.warning(`Issue #${issue.number} のイベント取得中にエラー: ${eventError.message}`);
+              }
+              break;
+            }
+          }
+          
+          // イベント取得結果をログ出力（デバッグ用）
+          if (allEvents.length > 0) {
+            core.info(`Issue #${issue.number}: ${allEvents.length}件のイベントを取得しました`);
+          }
+          
+          return {
+            issue,
+            events: allEvents
+          };
+        } catch (error) {
+          core.warning(`Issue #${issue.number} のイベント取得中にエラー: ${error.message}`);
+          return {
+            issue,
+            events: []
+          };
+        }
+      })
+    );
+    
+    core.info("イベント取得が完了しました");
+    
+    // イベント取得結果を確認
+    const totalEvents = issuesWithEvents.reduce((sum, { events }) => sum + events.length, 0);
+    const issuesWithNoEvents = issuesWithEvents.filter(({ events }) => events.length === 0).length;
+    core.info(`取得したイベント総数: ${totalEvents}件`);
+    core.info(`イベントが0件のIssue: ${issuesWithNoEvents}件`);
+    
     // Issueデータを整形
     /** @type {Issue[]} */
-    const formattedIssues = allIssues.map(issue => ({
+    const formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
       number: issue.number,
       title: issue.title,
       state: /** @type {IssueState} */ (issue.state),
@@ -81,7 +151,45 @@ export async function getAllIssues() {
       comments: issue.comments,
       body: issue.body || null,
       pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
-      draft: issue.draft || false // ドラフトかどうかのフラグ（プルリクエストの場合）
+      draft: issue.draft || false, // ドラフトかどうかのフラグ（プルリクエストの場合）
+      events: events.length > 0 ? events.map(event => {
+        // @ts-ignore - GitHub APIのイベントオブジェクトは動的なプロパティを持つ
+        const eventAny = /** @type {any} */ (event);
+        return {
+          id: event.id,
+          event: /** @type {IssueEventType} */ (event.event),
+          created_at: event.created_at,
+          actor: event.actor ? {
+            login: event.actor.login,
+            id: event.actor.id
+          } : null,
+          assignee: eventAny.assignee ? {
+            login: eventAny.assignee.login,
+            id: eventAny.assignee.id
+          } : null,
+          label: eventAny.label ? {
+            name: eventAny.label.name,
+            color: eventAny.label.color || null
+          } : null,
+          milestone: eventAny.milestone ? {
+            title: eventAny.milestone.title
+          } : null,
+          rename: eventAny.rename ? {
+            from: eventAny.rename.from,
+            to: eventAny.rename.to
+          } : null,
+          requested_reviewer: eventAny.requested_reviewer ? {
+            login: eventAny.requested_reviewer.login,
+            id: eventAny.requested_reviewer.id
+          } : null,
+          requested_team: eventAny.requested_team ? {
+            name: eventAny.requested_team.name,
+            id: eventAny.requested_team.id
+          } : null,
+          commit_id: eventAny.commit_id || null,
+          commit_url: eventAny.commit_url || null
+        };
+      }) : []
     }));
     
     // 出力として設定
@@ -105,6 +213,26 @@ export async function getAllIssues() {
     core.info(`オープン: ${openIssues}件`);
     core.info(`クローズ: ${closedIssues}件`);
     core.info(`プルリクエスト: ${pullRequests}件`);
+    
+    // イベントサマリー
+    const issuesWithEventsCount = formattedIssues.filter(issue => issue.events.length > 0).length;
+    const totalEventCount = formattedIssues.reduce((sum, issue) => sum + issue.events.length, 0);
+    core.info(`イベントがあるIssue: ${issuesWithEventsCount}件`);
+    core.info(`イベント総数: ${totalEventCount}件`);
+    
+    // イベントタイプ別の集計
+    const eventTypeCounts = {};
+    formattedIssues.forEach(issue => {
+      issue.events.forEach(event => {
+        eventTypeCounts[event.event] = (eventTypeCounts[event.event] || 0) + 1;
+      });
+    });
+    if (Object.keys(eventTypeCounts).length > 0) {
+      core.info("=== イベントタイプ別の集計 ===");
+      Object.entries(eventTypeCounts).forEach(([eventType, count]) => {
+        core.info(`${eventType}: ${count}件`);
+      });
+    }
     
     return formattedIssues;
     

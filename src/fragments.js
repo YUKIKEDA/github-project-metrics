@@ -12,13 +12,13 @@ export const ISSUE_FRAGMENT = `
     updatedAt
     closedAt
     url
-    assignees(first: 10) {
+    assignees(first: 5) {
       nodes {
         id
         login
       }
     }
-    labels(first: 10) {
+    labels(first: 5) {
       nodes {
         id
         name
@@ -39,13 +39,13 @@ export const PULL_REQUEST_FRAGMENT = `
     closedAt
     url
     isDraft
-    assignees(first: 10) {
+    assignees(first: 5) {
       nodes {
         id
         login
       }
     }
-    labels(first: 10) {
+    labels(first: 5) {
       nodes {
         id
         name
@@ -102,6 +102,46 @@ export const FIELD_VALUE_FRAGMENT = `
     }
     date
   }
+  ... on ProjectV2ItemFieldIterationValue {
+    field {
+      ... on ProjectV2IterationField {
+        id
+        name
+      }
+    }
+    iterationId
+    title
+    startDate
+    duration
+  }
+  ... on ProjectV2ItemFieldMilestoneValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    milestone {
+      id
+      title
+      description
+      dueOn
+    }
+  }
+  ... on ProjectV2ItemFieldUserValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    users(first: 1) {
+      nodes {
+        id
+        login
+      }
+    }
+  }
 `;
 
 export const ITEM_FRAGMENT = `
@@ -112,7 +152,7 @@ export const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 20) {
+  fieldValues(first: 10) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
@@ -120,7 +160,7 @@ export const ITEM_FRAGMENT = `
 `;
 
 export const PROJECT_ITEMS_FRAGMENT = `
-  items(first: 100) {
+  items(first: 25) {
     totalCount
     pageInfo {
       hasNextPage

@@ -22,7 +22,7 @@ export async function getAllProjectItems(octokit, projectId) {
       query($projectId: ID!, $after: String) {
         node(id: $projectId) {
           ... on ProjectV2 {
-            items(first: 100, after: $after) {
+            items(first: 25, after: $after) {
               pageInfo {
                 hasNextPage
                 endCursor
@@ -73,7 +73,7 @@ export async function fetchAllProjects(octokit, queryType, organizationName = nu
       query = `
         query($after: String) {
           viewer {
-            projectsV2(first: 100, after: $after) {
+            projectsV2(first: 25, after: $after) {
               ${PROJECTS_FRAGMENT}
             }
           }
@@ -86,7 +86,7 @@ export async function fetchAllProjects(octokit, queryType, organizationName = nu
       query = `
         query($orgName: String!, $after: String) {
           organization(login: $orgName) {
-            projectsV2(first: 100, after: $after) {
+            projectsV2(first: 25, after: $after) {
               ${PROJECTS_FRAGMENT}
             }
           }
