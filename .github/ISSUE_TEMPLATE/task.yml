@@ -1,6 +1,6 @@
 # .github/ISSUE_TEMPLATE/task.yml
 
-name: ⚙️ タスク (Internal Task)
+name: ⚙️ タスク (Task)
 description: リファクタリング、CI/CD改善、依存関係の更新など、開発者向けのタスクを管理します
 title: "[Task] "
 labels: ["task"]
