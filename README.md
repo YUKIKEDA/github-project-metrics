@@ -28,6 +28,15 @@ GitHubのIssueやProjectの情報を取得してチームの生産性を計測�
 
 **オプション** `project-scope`が`organization`の場合に、特定の組織名を指定します。必須です。
 
+### `output-path`
+
+**オプション** JSONファイル（`issues.json`と`projects.json`）の出力先ディレクトリを指定します。相対パスを指定した場合、`GITHUB_WORKSPACE`ディレクトリからの相対パスとして扱われます。絶対パスも指定可能です。指定したディレクトリが存在しない場合は自動的に作成されます。未指定の場合、デフォルトで`GITHUB_WORKSPACE`（通常はリポジトリのルートディレクトリ）に出力されます。
+
+**例:**
+- `output-path: metrics` → `GITHUB_WORKSPACE/metrics/issues.json`に出力
+- `output-path: ./data` → `GITHUB_WORKSPACE/data/issues.json`に出力
+- 未指定 → `GITHUB_WORKSPACE/issues.json`に出力
+
 ## Outputs
 
 ### `issues`
@@ -105,10 +114,40 @@ jobs:
           echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
           echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
         
-      - name: Save Data to Files
+      # デフォルトではGITHUB_WORKSPACEにissues.jsonとprojects.jsonが自動生成されます
+      - name: List Generated Files
         run: |
-          echo '${{ steps.get-metrics.outputs.issues }}' > issues.json
-          echo '${{ steps.get-metrics.outputs.projects }}' > projects.json
+          ls -la *.json || echo "No JSON files found in workspace"
+```
+
+### 特定のディレクトリに出力する
+
+```yaml
+name: Get User Projects with Custom Output
+on:
+  workflow_dispatch:
+
+jobs:
+  get-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get User Projects
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          project-scope: "user"
+          output-path: "metrics/reports"  # カスタム出力先
+      
+      - name: Display Metrics
+        run: |
+          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
+          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
+          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
+      
+      # metrics/reports ディレクトリにissues.jsonとprojects.jsonが生成されます
+      - name: List Generated Files
+        run: |
+          find . -name "*.json" -type f || echo "No JSON files found"
 ```
 
 ### 特定の組織のプロジェクトを取得
