@@ -1,0 +1,5 @@
+# .github/ISSUE_TEMPLATE/config.yml
+
+# trueにするとテンプレートを使わない空のIssueを作成できます。
+# falseにすると、必ずいずれかのテンプレートを選択する必要があり、情報が構造化されるため推奨されます。
+blank_issues_enabled: false
