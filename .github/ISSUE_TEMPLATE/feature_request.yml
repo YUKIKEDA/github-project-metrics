@@ -1,0 +1,60 @@
+# .github/ISSUE_TEMPLATE/feature_request.yml
+
+name: ✨ 機能要望 (Feature Request)
+description: 新しい機能や改善の提案はこちらからお願いします
+title: "[Feature] "
+labels: ["enhancement", "feature request"]
+assignees:
+  - 
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ご提案ありがとうございます！
+        このIssueがスムーズに進行するよう、以下の項目にご協力ください。
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: どのような課題を解決するものですか？
+      description: 「〜ができないため、不便です」のように、現状の問題点や、この機能が必要な背景を具体的に説明してください。
+      placeholder: 例）ユーザーが〇〇する際に、△△の操作を何度も行う必要があり、手間がかかっている。
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution-description
+    attributes:
+      label: どのような解決策を提案しますか？
+      description: この機能がどのように動作するのか、具体的に説明してください。必要であれば、スクリーンショットやモックアップを貼り付けてください。
+      placeholder: 例）〇〇画面に△△ボタンを追加し、クリックすると□□の処理が自動で実行されるようにする。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 他に考えられる代替案はありますか？
+      description: 検討した他の方法やアプローチがあれば記述してください。（任意）
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: その他 (追加のコンテキスト)
+      description: スクリーンショットや関連するIssue、その他参考になる情報があれば、こちらに追記してください。（任意）
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 確認事項
+      description: Issueを立てる前に、以下の項目を確認してください。
+      options:
+        - label: このリポジトリの行動規範 (Code of Conduct) を読み、これに同意します。
+          required: true
+        - label: 既存のIssueを検索し、同様の機能要望がないことを確認しました。
+          required: true
