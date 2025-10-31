@@ -152,7 +152,7 @@ export const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 20) {
+  fieldValues(first: 10) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
@@ -160,7 +160,7 @@ export const ITEM_FRAGMENT = `
 `;
 
 export const PROJECT_ITEMS_FRAGMENT = `
-  items(first: 100) {
+  items(first: 25) {
     totalCount
     pageInfo {
       hasNextPage

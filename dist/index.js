@@ -31646,7 +31646,7 @@ const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 20) {
+  fieldValues(first: 10) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
@@ -31654,7 +31654,7 @@ const ITEM_FRAGMENT = `
 `;
 
 const PROJECT_ITEMS_FRAGMENT = `
-  items(first: 100) {
+  items(first: 25) {
     totalCount
     pageInfo {
       hasNextPage
@@ -31708,7 +31708,7 @@ async function getAllProjectItems(octokit, projectId) {
       query($projectId: ID!, $after: String) {
         node(id: $projectId) {
           ... on ProjectV2 {
-            items(first: 100, after: $after) {
+            items(first: 25, after: $after) {
               pageInfo {
                 hasNextPage
                 endCursor
@@ -31759,7 +31759,7 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
       query = `
         query($after: String) {
           viewer {
-            projectsV2(first: 100, after: $after) {
+            projectsV2(first: 25, after: $after) {
               ${PROJECTS_FRAGMENT}
             }
           }
@@ -31772,7 +31772,7 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
       query = `
         query($orgName: String!, $after: String) {
           organization(login: $orgName) {
-            projectsV2(first: 100, after: $after) {
+            projectsV2(first: 25, after: $after) {
               ${PROJECTS_FRAGMENT}
             }
           }
