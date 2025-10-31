@@ -2,21 +2,17 @@
 /// <reference path="./types.d.ts" />
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import * as fs from "fs";
-import * as path from "path";
 import { fetchAllProjects } from "./projectUtils.js";
 
 /**
- * GitHubプロジェクト（v2）を取得し、整形して出力する
- * @param {Issue[]} [issuesData] - Issueデータ（オプション、issues.jsonファイル出力に使用）
+ * GitHubプロジェクト（v2）を取得し、整形して返す
  * @returns {Promise<Project[]>} 整形されたプロジェクトデータの配列
  * @throws {Error} エラーが発生した場合
  */
-export async function getAllProjects(issuesData) {
+export async function getAllProjects() {
   const token = core.getInput("github-token");
   const projectScope = core.getInput("project-scope");
   const organizationName = core.getInput("organization-name");
-  const outputPath = core.getInput("output-path");
   const octokit = github.getOctokit(token);
   
   core.info(`Project取得スコープ: ${projectScope}`);
@@ -127,93 +123,6 @@ export async function getAllProjects(issuesData) {
     // ProjectデータのJSONを表示（詳細版）
     core.info("\n=== Projectデータ（整形済み） ===");
     core.info(JSON.stringify(formattedProjects, null, 2));
-    
-    // GitHub Actions Summaryに書き込む
-    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
-    if (summaryPath) {
-      let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
-      summaryMarkdown += `### サマリー\n\n`;
-      summaryMarkdown += `| 項目 | 数量 |\n`;
-      summaryMarkdown += `|------|------|\n`;
-      summaryMarkdown += `| **総プロジェクト数** | **${projects.length}** |\n`;
-      summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
-      
-      // プロジェクト詳細
-      if (formattedProjects.length > 0) {
-        summaryMarkdown += `### プロジェクト一覧\n\n`;
-        formattedProjects.forEach((project, index) => {
-          summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
-          summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
-          summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
-          summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
-          summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
-          if (project.shortDescription) {
-            summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
-          }
-          summaryMarkdown += `\n`;
-          
-          // プロジェクト内のタスク一覧を表示
-          if (project.items && project.items.length > 0) {
-            summaryMarkdown += `**タスク一覧**:\n\n`;
-            summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
-            summaryMarkdown += `|---|--------|---------|------|-----|\n`;
-            
-            project.items.forEach((item, itemIndex) => {
-              const taskNumber = itemIndex + 1;
-              if (item.content) {
-                const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
-                const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
-                const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
-                const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
-                const title = item.content.title || 'タイトルなし';
-                const url = item.content.url || '';
-                
-                summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
-              } else if (item.type === 'DRAFT_ISSUE') {
-                // ドラフトイシューの場合はcontentがnullの場合がある
-                summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
-              }
-            });
-            summaryMarkdown += `\n`;
-          } else if (project.totalItems > 0) {
-            summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
-          } else {
-            summaryMarkdown += `**タスク**: なし\n\n`;
-          }
-        });
-      }
-      
-      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
-    }
-    
-    // JSONファイルを保存
-    try {
-      const workspacePath = outputPath 
-        ? (path.isAbsolute(outputPath) ? outputPath : path.join(process.env.GITHUB_WORKSPACE || '.', outputPath))
-        : (process.env.GITHUB_WORKSPACE || '.');
-      
-      // 出力ディレクトリが存在しない場合は作成
-      if (!fs.existsSync(workspacePath)) {
-        fs.mkdirSync(workspacePath, { recursive: true });
-        core.info(`Created output directory: ${workspacePath}`);
-      }
-      
-      const issuesPath = path.join(workspacePath, 'issues.json');
-      const projectsPath = path.join(workspacePath, 'projects.json');
-      
-      // issues.jsonファイルを保存（issuesDataが渡された場合のみ）
-      if (issuesData) {
-        fs.writeFileSync(issuesPath, JSON.stringify(issuesData, null, 2));
-        core.info(`Issues data saved to ${issuesPath}`);
-      }
-      
-      // projects.jsonファイルを保存
-      fs.writeFileSync(projectsPath, JSON.stringify(formattedProjects, null, 2));
-      core.info(`Projects data saved to ${projectsPath}`);
-      
-    } catch (writeError) {
-      core.warning(`Failed to save JSON files: ${writeError.message}`);
-    }
     
     return formattedProjects;
     
