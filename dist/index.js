@@ -31255,7 +31255,7 @@ var githubExports = requireGithub();
 
 /**
  * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
- * @returns {Promise<void>}
+ * @returns {Promise<Issue[]>} 整形されたIssue配列
  * @throws {Error} エラーが発生した場合
  */
 async function getAllIssues() {
@@ -31341,9 +31341,6 @@ async function getAllIssues() {
     
     coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
     
-    // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
-    global.issuesData = formattedIssues;
-    
     // Issueデータのサマリーを表示
     coreExports.info("=== Issueデータ（整形済み） ===");
     coreExports.info(JSON.stringify(formattedIssues, null, 2));
@@ -31389,6 +31386,8 @@ async function getAllIssues() {
       
       fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
     }
+    
+    return formattedIssues;
     
   } catch (error) {
     coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
@@ -31682,10 +31681,11 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
 
 /**
  * GitHubプロジェクト（v2）を取得し、整形して出力する
+ * @param {Issue[]} [issuesData] - Issueデータ（オプション、issues.jsonファイル出力に使用）
  * @returns {Promise<Project[]>} 整形されたプロジェクトデータの配列
  * @throws {Error} エラーが発生した場合
  */
-async function getAllProjects() {
+async function getAllProjects(issuesData) {
   const token = coreExports.getInput("github-token");
   const projectScope = coreExports.getInput("project-scope");
   const organizationName = coreExports.getInput("organization-name");
@@ -31874,9 +31874,9 @@ async function getAllProjects() {
       const issuesPath = path.join(workspacePath, 'issues.json');
       const projectsPath = path.join(workspacePath, 'projects.json');
       
-      // issues.jsonファイルを保存（getAllIssuesから呼ばれる場合のみ）
-      if (global.issuesData) {
-        fs.writeFileSync(issuesPath, JSON.stringify(global.issuesData, null, 2));
+      // issues.jsonファイルを保存（issuesDataが渡された場合のみ）
+      if (issuesData) {
+        fs.writeFileSync(issuesPath, JSON.stringify(issuesData, null, 2));
         coreExports.info(`Issues data saved to ${issuesPath}`);
       }
       
@@ -31918,10 +31918,10 @@ async function main() {
     coreExports.info("=== GitHub Project Metrics 実行開始 ===");
     
     // Issueを取得
-    await getAllIssues();
+    const issuesData = await getAllIssues();
     
-    // Projectを取得
-    await getAllProjects();
+    // Projectを取得（issuesDataを渡す）
+    await getAllProjects(issuesData);
     
     coreExports.info("=== GitHub Project Metrics 実行完了 ===");
     
