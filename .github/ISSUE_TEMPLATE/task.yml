@@ -1,7 +1,7 @@
 # .github/ISSUE_TEMPLATE/task.yml
 
-name: ⚙️ 内部タスク (Internal Task)
-description: リファクタリング、CI/CD改善、依存関係の更新など、開発者向けの内部タスクを管理します
+name: ⚙️ タスク (Internal Task)
+description: リファクタリング、CI/CD改善、依存関係の更新など、開発者向けのタスクを管理します
 title: "[Task] "
 labels: ["task"]
 assignees:
@@ -12,7 +12,7 @@ body:
     attributes:
       value: |
         プロジェクトの改善にご協力いただきありがとうございます。
-        このIssueでは、機能開発やバグ修正以外の内部的なタスクを管理します。
+        このIssueでは、機能開発やバグ修正以外のタスクを管理します。
 
   - type: dropdown
     id: task-type
