@@ -31610,15 +31610,17 @@ const FIELD_VALUE_FRAGMENT = `
   }
   ... on ProjectV2ItemFieldMilestoneValue {
     field {
-      ... on ProjectV2MilestoneField {
+      ... on ProjectV2Field {
         id
         name
       }
     }
-    milestoneId
-    title
-    description
-    dueDate
+    milestone {
+      id
+      title
+      description
+      dueOn
+    }
   }
   ... on ProjectV2ItemFieldUserValue {
     field {
@@ -31917,11 +31919,11 @@ async function getAllProjects() {
           } : null;
           
           // Milestoneフィールド値
-          const milestone = fieldValueAny.milestoneId ? {
-            milestoneId: fieldValueAny.milestoneId,
-            title: fieldValueAny.title || '',
-            description: fieldValueAny.description || null,
-            dueDate: fieldValueAny.dueDate || null
+          const milestone = fieldValueAny.milestone ? {
+            id: fieldValueAny.milestone.id || '',
+            title: fieldValueAny.milestone.title || '',
+            description: fieldValueAny.milestone.description || null,
+            dueOn: fieldValueAny.milestone.dueOn || null
           } : null;
           
           // Userフィールド値
