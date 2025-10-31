@@ -2,8 +2,8 @@
 
 name: ✨ 機能要望 (Feature Request)
 description: 新しい機能や改善の提案はこちらからお願いします
-title: "[Feature] "
-labels: ["enhancement", "feature request"]
+title: "[Feat] "
+labels: ["enhancement"]
 assignees:
   - 
 
