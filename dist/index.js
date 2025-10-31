@@ -31344,6 +31344,52 @@ async function getAllIssues() {
     // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
     global.issuesData = formattedIssues;
     
+    // Issueデータのサマリーを表示
+    coreExports.info("=== Issueデータ（整形済み） ===");
+    coreExports.info(JSON.stringify(formattedIssues, null, 2));
+    
+    // Issueサマリー情報を表示
+    const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
+    const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
+    const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
+    
+    coreExports.info("=== Issueサマリー ===");
+    coreExports.info(`総数: ${formattedIssues.length}件`);
+    coreExports.info(`オープン: ${openIssues}件`);
+    coreExports.info(`クローズ: ${closedIssues}件`);
+    coreExports.info(`プルリクエスト: ${pullRequests}件`);
+    
+    // GitHub Actions Summaryに書き込む
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      const { owner, repo } = githubExports.context.repo;
+      let summaryMarkdown = `## 📋 Issues メトリクス\n\n`;
+      summaryMarkdown += `**リポジトリ**: \`${owner}/${repo}\`\n\n`;
+      summaryMarkdown += `### サマリー\n\n`;
+      summaryMarkdown += `| 項目 | 数量 |\n`;
+      summaryMarkdown += `|------|------|\n`;
+      summaryMarkdown += `| **総数** | **${formattedIssues.length}** |\n`;
+      summaryMarkdown += `| オープン | ${openIssues} |\n`;
+      summaryMarkdown += `| クローズ | ${closedIssues} |\n`;
+      summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n\n`;
+      
+      // 最新のIssue一覧（最大10件）
+      if (formattedIssues.length > 0) {
+        summaryMarkdown += `### 最新のIssue（最大10件）\n\n`;
+        summaryMarkdown += `| # | タイトル | 状態 | 作成日 |\n`;
+        summaryMarkdown += `|---|---------|------|--------|\n`;
+        const recentIssues = formattedIssues.slice(0, 10);
+        recentIssues.forEach(issue => {
+          const issueUrl = `https://github.com/${owner}/${repo}/issues/${issue.number}`;
+          const stateIcon = issue.state === 'open' ? '🟢' : '🔴';
+          summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${issue.created_at} |\n`;
+        });
+        summaryMarkdown += `\n`;
+      }
+      
+      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
+    }
+    
   } catch (error) {
     coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
     throw error;
@@ -31734,12 +31780,84 @@ async function getAllProjects() {
     
     coreExports.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
-    // ProjectデータのJSONを表示
-    coreExports.info("=== Projectデータ（整形済み） ===");
+    // Projectサマリー情報を表示
+    coreExports.info("=== Projectサマリー ===");
+    coreExports.info(`総プロジェクト数: ${projects.length}件`);
+    coreExports.info(`総タスク数: ${totalTasks}件`);
+    
+    formattedProjects.forEach((project, index) => {
+      coreExports.info(`\n--- Project ${index + 1}: ${project.title} ---`);
+      coreExports.info(`ID: ${project.id}`);
+      coreExports.info(`URL: ${project.url}`);
+      coreExports.info(`タスク数: ${project.totalItems}件`);
+      coreExports.info(`作成日: ${project.createdAt}`);
+      coreExports.info(`更新日: ${project.updatedAt}`);
+      if (project.shortDescription) {
+        coreExports.info(`説明: ${project.shortDescription}`);
+      }
+    });
+    
+    // ProjectデータのJSONを表示（詳細版）
+    coreExports.info("\n=== Projectデータ（整形済み） ===");
     coreExports.info(JSON.stringify(formattedProjects, null, 2));
     
-    coreExports.info("=== Projectデータ（生データ） ===");
-    coreExports.info(JSON.stringify(projects, null, 2));
+    // GitHub Actions Summaryに書き込む
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
+      summaryMarkdown += `### サマリー\n\n`;
+      summaryMarkdown += `| 項目 | 数量 |\n`;
+      summaryMarkdown += `|------|------|\n`;
+      summaryMarkdown += `| **総プロジェクト数** | **${projects.length}** |\n`;
+      summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
+      
+      // プロジェクト詳細
+      if (formattedProjects.length > 0) {
+        summaryMarkdown += `### プロジェクト一覧\n\n`;
+        formattedProjects.forEach((project, index) => {
+          summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
+          summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
+          summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
+          summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
+          summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
+          if (project.shortDescription) {
+            summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
+          }
+          summaryMarkdown += `\n`;
+          
+          // プロジェクト内のタスク一覧を表示
+          if (project.items && project.items.length > 0) {
+            summaryMarkdown += `**タスク一覧**:\n\n`;
+            summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
+            summaryMarkdown += `|---|--------|---------|------|-----|\n`;
+            
+            project.items.forEach((item, itemIndex) => {
+              const taskNumber = itemIndex + 1;
+              if (item.content) {
+                const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
+                const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
+                const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
+                const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
+                const title = item.content.title || 'タイトルなし';
+                const url = item.content.url || '';
+                
+                summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
+              } else if (item.type === 'DRAFT_ISSUE') {
+                // ドラフトイシューの場合はcontentがnullの場合がある
+                summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
+              }
+            });
+            summaryMarkdown += `\n`;
+          } else if (project.totalItems > 0) {
+            summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
+          } else {
+            summaryMarkdown += `**タスク**: なし\n\n`;
+          }
+        });
+      }
+      
+      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
+    }
     
     // JSONファイルを保存
     try {
@@ -31789,6 +31907,13 @@ async function getAllProjects() {
  */
 async function main() {
   try {
+    // GitHub Actions Summaryの初期化
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      // Summaryファイルを初期化（既存の内容をクリア）
+      fs.writeFileSync(summaryPath, '# 📈 GitHub Project Metrics\n\n', 'utf8');
+    }
+    
     // IssueとProjectの両方を取得
     coreExports.info("=== GitHub Project Metrics 実行開始 ===");
     
@@ -31800,8 +31925,19 @@ async function main() {
     
     coreExports.info("=== GitHub Project Metrics 実行完了 ===");
     
+    // Summaryに完了メッセージを追加
+    if (summaryPath) {
+      fs.appendFileSync(summaryPath, `---\n\n✅ **実行完了**: ${new Date().toLocaleString('ja-JP')}\n`, 'utf8');
+    }
+    
   } catch (error) {
     coreExports.setFailed(error.message);
+    
+    // エラー時もSummaryに記載
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      fs.appendFileSync(summaryPath, `\n---\n\n❌ **エラー**: ${error.message}\n`, 'utf8');
+    }
   }
 }
 

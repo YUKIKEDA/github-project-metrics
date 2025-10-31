@@ -106,12 +106,84 @@ export async function getAllProjects() {
     
     core.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
-    // ProjectデータのJSONを表示
-    core.info("=== Projectデータ（整形済み） ===");
+    // Projectサマリー情報を表示
+    core.info("=== Projectサマリー ===");
+    core.info(`総プロジェクト数: ${projects.length}件`);
+    core.info(`総タスク数: ${totalTasks}件`);
+    
+    formattedProjects.forEach((project, index) => {
+      core.info(`\n--- Project ${index + 1}: ${project.title} ---`);
+      core.info(`ID: ${project.id}`);
+      core.info(`URL: ${project.url}`);
+      core.info(`タスク数: ${project.totalItems}件`);
+      core.info(`作成日: ${project.createdAt}`);
+      core.info(`更新日: ${project.updatedAt}`);
+      if (project.shortDescription) {
+        core.info(`説明: ${project.shortDescription}`);
+      }
+    });
+    
+    // ProjectデータのJSONを表示（詳細版）
+    core.info("\n=== Projectデータ（整形済み） ===");
     core.info(JSON.stringify(formattedProjects, null, 2));
     
-    core.info("=== Projectデータ（生データ） ===");
-    core.info(JSON.stringify(projects, null, 2));
+    // GitHub Actions Summaryに書き込む
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
+      summaryMarkdown += `### サマリー\n\n`;
+      summaryMarkdown += `| 項目 | 数量 |\n`;
+      summaryMarkdown += `|------|------|\n`;
+      summaryMarkdown += `| **総プロジェクト数** | **${projects.length}** |\n`;
+      summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
+      
+      // プロジェクト詳細
+      if (formattedProjects.length > 0) {
+        summaryMarkdown += `### プロジェクト一覧\n\n`;
+        formattedProjects.forEach((project, index) => {
+          summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
+          summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
+          summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
+          summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
+          summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
+          if (project.shortDescription) {
+            summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
+          }
+          summaryMarkdown += `\n`;
+          
+          // プロジェクト内のタスク一覧を表示
+          if (project.items && project.items.length > 0) {
+            summaryMarkdown += `**タスク一覧**:\n\n`;
+            summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
+            summaryMarkdown += `|---|--------|---------|------|-----|\n`;
+            
+            project.items.forEach((item, itemIndex) => {
+              const taskNumber = itemIndex + 1;
+              if (item.content) {
+                const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
+                const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
+                const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
+                const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
+                const title = item.content.title || 'タイトルなし';
+                const url = item.content.url || '';
+                
+                summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
+              } else if (item.type === 'DRAFT_ISSUE') {
+                // ドラフトイシューの場合はcontentがnullの場合がある
+                summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
+              }
+            });
+            summaryMarkdown += `\n`;
+          } else if (project.totalItems > 0) {
+            summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
+          } else {
+            summaryMarkdown += `**タスク**: なし\n\n`;
+          }
+        });
+      }
+      
+      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
+    }
     
     // JSONファイルを保存
     try {
