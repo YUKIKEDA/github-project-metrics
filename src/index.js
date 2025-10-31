@@ -1,4 +1,5 @@
 //@ts-check
+/// <reference path="./types.d.ts" />
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import * as fs from "fs";
@@ -281,7 +282,7 @@ async function fetchAllProjects(octokit, queryType, organizationName = null) {
 
 /**
  * GitHubプロジェクト（v2）を取得し、整形して出力する
- * @returns {Promise<Array<any>>} 整形されたプロジェクトデータの配列
+ * @returns {Promise<Project[]>} 整形されたプロジェクトデータの配列
  * @throws {Error} エラーが発生した場合
  */
 async function getAllProjects() {
@@ -332,6 +333,7 @@ async function getAllProjects() {
     core.info(`合計 ${projects.length}件のProjectを取得しました`);
     
     // プロジェクトデータを整形
+    /** @type {Project[]} */
     const formattedProjects = projects.map(project => ({
       id: project.id,
       title: project.title,
@@ -460,10 +462,11 @@ async function getAllIssues() {
     core.info(`合計 ${allIssues.length}件のIssueを取得しました`);
     
     // Issueデータを整形
+    /** @type {Issue[]} */
     const formattedIssues = allIssues.map(issue => ({
       number: issue.number,
       title: issue.title,
-      state: issue.state,
+      state: /** @type {IssueState} */ (issue.state),
       created_at: issue.created_at,
       updated_at: issue.updated_at,
       closed_at: issue.closed_at,
@@ -487,7 +490,7 @@ async function getAllIssues() {
         state: issue.milestone.state
       } : null,
       comments: issue.comments,
-      body: issue.body,
+      body: issue.body || null,
       pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
       draft: issue.draft || false // ドラフトかどうかのフラグ（プルリクエストの場合）
     }));
