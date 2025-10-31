@@ -106,12 +106,55 @@ export async function getAllProjects() {
     
     core.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
-    // ProjectデータのJSONを表示
-    core.info("=== Projectデータ（整形済み） ===");
+    // Projectサマリー情報を表示
+    core.info("=== Projectサマリー ===");
+    core.info(`総プロジェクト数: ${projects.length}件`);
+    core.info(`総タスク数: ${totalTasks}件`);
+    
+    formattedProjects.forEach((project, index) => {
+      core.info(`\n--- Project ${index + 1}: ${project.title} ---`);
+      core.info(`ID: ${project.id}`);
+      core.info(`URL: ${project.url}`);
+      core.info(`タスク数: ${project.totalItems}件`);
+      core.info(`作成日: ${project.createdAt}`);
+      core.info(`更新日: ${project.updatedAt}`);
+      if (project.shortDescription) {
+        core.info(`説明: ${project.shortDescription}`);
+      }
+    });
+    
+    // ProjectデータのJSONを表示（詳細版）
+    core.info("\n=== Projectデータ（整形済み） ===");
     core.info(JSON.stringify(formattedProjects, null, 2));
     
-    core.info("=== Projectデータ（生データ） ===");
-    core.info(JSON.stringify(projects, null, 2));
+    // GitHub Actions Summaryに書き込む
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
+      summaryMarkdown += `### サマリー\n\n`;
+      summaryMarkdown += `| 項目 | 数量 |\n`;
+      summaryMarkdown += `|------|------|\n`;
+      summaryMarkdown += `| **総プロジェクト数** | **${projects.length}** |\n`;
+      summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
+      
+      // プロジェクト詳細
+      if (formattedProjects.length > 0) {
+        summaryMarkdown += `### プロジェクト一覧\n\n`;
+        formattedProjects.forEach((project, index) => {
+          summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
+          summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
+          summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
+          summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
+          summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
+          if (project.shortDescription) {
+            summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
+          }
+          summaryMarkdown += `\n`;
+        });
+      }
+      
+      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
+    }
     
     // JSONファイルを保存
     try {

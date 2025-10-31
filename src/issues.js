@@ -2,6 +2,7 @@
 /// <reference path="./types.d.ts" />
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import * as fs from "fs";
 
 /**
  * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
@@ -93,6 +94,52 @@ export async function getAllIssues() {
     
     // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
     global.issuesData = formattedIssues;
+    
+    // Issueデータのサマリーを表示
+    core.info("=== Issueデータ（整形済み） ===");
+    core.info(JSON.stringify(formattedIssues, null, 2));
+    
+    // Issueサマリー情報を表示
+    const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
+    const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
+    const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
+    
+    core.info("=== Issueサマリー ===");
+    core.info(`総数: ${formattedIssues.length}件`);
+    core.info(`オープン: ${openIssues}件`);
+    core.info(`クローズ: ${closedIssues}件`);
+    core.info(`プルリクエスト: ${pullRequests}件`);
+    
+    // GitHub Actions Summaryに書き込む
+    const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+    if (summaryPath) {
+      const { owner, repo } = github.context.repo;
+      let summaryMarkdown = `## 📋 Issues メトリクス\n\n`;
+      summaryMarkdown += `**リポジトリ**: \`${owner}/${repo}\`\n\n`;
+      summaryMarkdown += `### サマリー\n\n`;
+      summaryMarkdown += `| 項目 | 数量 |\n`;
+      summaryMarkdown += `|------|------|\n`;
+      summaryMarkdown += `| **総数** | **${formattedIssues.length}** |\n`;
+      summaryMarkdown += `| オープン | ${openIssues} |\n`;
+      summaryMarkdown += `| クローズ | ${closedIssues} |\n`;
+      summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n\n`;
+      
+      // 最新のIssue一覧（最大10件）
+      if (formattedIssues.length > 0) {
+        summaryMarkdown += `### 最新のIssue（最大10件）\n\n`;
+        summaryMarkdown += `| # | タイトル | 状態 | 作成日 |\n`;
+        summaryMarkdown += `|---|---------|------|--------|\n`;
+        const recentIssues = formattedIssues.slice(0, 10);
+        recentIssues.forEach(issue => {
+          const issueUrl = `https://github.com/${owner}/${repo}/issues/${issue.number}`;
+          const stateIcon = issue.state === 'open' ? '🟢' : '🔴';
+          summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${issue.created_at} |\n`;
+        });
+        summaryMarkdown += `\n`;
+      }
+      
+      fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
+    }
     
   } catch (error) {
     core.error(`Issue取得中にエラーが発生しました: ${error.message}`);
