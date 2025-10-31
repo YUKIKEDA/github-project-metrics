@@ -11,6 +11,9 @@ inputs:
   organization-name: # 組織名（organizationスコープの場合）
     description: 組織名（project-scopeがorganizationの場合に必須）
     required: false
+  output-path: # JSONファイルの出力先
+    description: JSONファイルの出力先ディレクトリ（デフォルトはGitHubワークスペース）
+    required: false
 
 outputs:
   issues: # id of output

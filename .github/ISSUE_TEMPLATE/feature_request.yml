@@ -47,14 +47,3 @@ body:
       description: スクリーンショットや関連するIssue、その他参考になる情報があれば、こちらに追記してください。（任意）
     validations:
       required: false
-
-  - type: checkboxes
-    id: checklist
-    attributes:
-      label: 確認事項
-      description: Issueを立てる前に、以下の項目を確認してください。
-      options:
-        - label: このリポジトリの行動規範 (Code of Conduct) を読み、これに同意します。
-          required: true
-        - label: 既存のIssueを検索し、同様の機能要望がないことを確認しました。
-          required: true

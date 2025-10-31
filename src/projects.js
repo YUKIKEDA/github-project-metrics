@@ -15,6 +15,7 @@ export async function getAllProjects() {
   const token = core.getInput("github-token");
   const projectScope = core.getInput("project-scope");
   const organizationName = core.getInput("organization-name");
+  const outputPath = core.getInput("output-path");
   const octokit = github.getOctokit(token);
   
   core.info(`Project取得スコープ: ${projectScope}`);
@@ -114,7 +115,16 @@ export async function getAllProjects() {
     
     // JSONファイルを保存
     try {
-      const workspacePath = process.env.GITHUB_WORKSPACE || '.';
+      const workspacePath = outputPath 
+        ? (path.isAbsolute(outputPath) ? outputPath : path.join(process.env.GITHUB_WORKSPACE || '.', outputPath))
+        : (process.env.GITHUB_WORKSPACE || '.');
+      
+      // 出力ディレクトリが存在しない場合は作成
+      if (!fs.existsSync(workspacePath)) {
+        fs.mkdirSync(workspacePath, { recursive: true });
+        core.info(`Created output directory: ${workspacePath}`);
+      }
+      
       const issuesPath = path.join(workspacePath, 'issues.json');
       const projectsPath = path.join(workspacePath, 'projects.json');
       
