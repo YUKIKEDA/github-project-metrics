@@ -12,13 +12,13 @@ export const ISSUE_FRAGMENT = `
     updatedAt
     closedAt
     url
-    assignees(first: 10) {
+    assignees(first: 5) {
       nodes {
         id
         login
       }
     }
-    labels(first: 10) {
+    labels(first: 5) {
       nodes {
         id
         name
@@ -39,13 +39,13 @@ export const PULL_REQUEST_FRAGMENT = `
     closedAt
     url
     isDraft
-    assignees(first: 10) {
+    assignees(first: 5) {
       nodes {
         id
         login
       }
     }
-    labels(first: 10) {
+    labels(first: 5) {
       nodes {
         id
         name
@@ -135,7 +135,7 @@ export const FIELD_VALUE_FRAGMENT = `
         name
       }
     }
-    users(first: 10) {
+    users(first: 1) {
       nodes {
         id
         login
@@ -152,7 +152,7 @@ export const ITEM_FRAGMENT = `
     ${PULL_REQUEST_FRAGMENT}
     ${DRAFT_ISSUE_FRAGMENT}
   }
-  fieldValues(first: 50) {
+  fieldValues(first: 20) {
     nodes {
       ${FIELD_VALUE_FRAGMENT}
     }
