@@ -8,10 +8,11 @@ import { fetchAllProjects } from "./projectUtils.js";
 
 /**
  * GitHubプロジェクト（v2）を取得し、整形して出力する
+ * @param {Issue[]} [issuesData] - Issueデータ（オプション、issues.jsonファイル出力に使用）
  * @returns {Promise<Project[]>} 整形されたプロジェクトデータの配列
  * @throws {Error} エラーが発生した場合
  */
-export async function getAllProjects() {
+export async function getAllProjects(issuesData) {
   const token = core.getInput("github-token");
   const projectScope = core.getInput("project-scope");
   const organizationName = core.getInput("organization-name");
@@ -200,9 +201,9 @@ export async function getAllProjects() {
       const issuesPath = path.join(workspacePath, 'issues.json');
       const projectsPath = path.join(workspacePath, 'projects.json');
       
-      // issues.jsonファイルを保存（getAllIssuesから呼ばれる場合のみ）
-      if (global.issuesData) {
-        fs.writeFileSync(issuesPath, JSON.stringify(global.issuesData, null, 2));
+      // issues.jsonファイルを保存（issuesDataが渡された場合のみ）
+      if (issuesData) {
+        fs.writeFileSync(issuesPath, JSON.stringify(issuesData, null, 2));
         core.info(`Issues data saved to ${issuesPath}`);
       }
       

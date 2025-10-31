@@ -6,7 +6,7 @@ import * as fs from "fs";
 
 /**
  * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
- * @returns {Promise<void>}
+ * @returns {Promise<Issue[]>} 整形されたIssue配列
  * @throws {Error} エラーが発生した場合
  */
 export async function getAllIssues() {
@@ -92,9 +92,6 @@ export async function getAllIssues() {
     
     core.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
     
-    // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
-    global.issuesData = formattedIssues;
-    
     // Issueデータのサマリーを表示
     core.info("=== Issueデータ（整形済み） ===");
     core.info(JSON.stringify(formattedIssues, null, 2));
@@ -140,6 +137,8 @@ export async function getAllIssues() {
       
       fs.appendFileSync(summaryPath, summaryMarkdown, 'utf8');
     }
+    
+    return formattedIssues;
     
   } catch (error) {
     core.error(`Issue取得中にエラーが発生しました: ${error.message}`);

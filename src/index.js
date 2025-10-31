@@ -24,10 +24,10 @@ async function main() {
     core.info("=== GitHub Project Metrics 実行開始 ===");
     
     // Issueを取得
-    await getAllIssues();
+    const issuesData = await getAllIssues();
     
-    // Projectを取得
-    await getAllProjects();
+    // Projectを取得（issuesDataを渡す）
+    await getAllProjects(issuesData);
     
     core.info("=== GitHub Project Metrics 実行完了 ===");
     
