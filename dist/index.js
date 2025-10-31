@@ -31824,6 +31824,34 @@ async function getAllProjects() {
             summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
           }
           summaryMarkdown += `\n`;
+          
+          // プロジェクト内のタスク一覧を表示
+          if (project.items && project.items.length > 0) {
+            summaryMarkdown += `**タスク一覧**:\n\n`;
+            summaryMarkdown += `| タイプ | タイトル | 状態 | URL |\n`;
+            summaryMarkdown += `|--------|---------|------|-----|\n`;
+            
+            project.items.forEach(item => {
+              if (item.content) {
+                const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
+                const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
+                const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
+                const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
+                const title = item.content.title || 'タイトルなし';
+                const url = item.content.url || '';
+                
+                summaryMarkdown += `| ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
+              } else if (item.type === 'DRAFT_ISSUE') {
+                // ドラフトイシューの場合はcontentがnullの場合がある
+                summaryMarkdown += `| 📝 Draft | (ドラフト) | - | - |\n`;
+              }
+            });
+            summaryMarkdown += `\n`;
+          } else if (project.totalItems > 0) {
+            summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
+          } else {
+            summaryMarkdown += `**タスク**: なし\n\n`;
+          }
         });
       }
       
