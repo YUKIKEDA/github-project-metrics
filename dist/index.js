@@ -31828,10 +31828,11 @@ async function getAllProjects() {
           // プロジェクト内のタスク一覧を表示
           if (project.items && project.items.length > 0) {
             summaryMarkdown += `**タスク一覧**:\n\n`;
-            summaryMarkdown += `| タイプ | タイトル | 状態 | URL |\n`;
-            summaryMarkdown += `|--------|---------|------|-----|\n`;
+            summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
+            summaryMarkdown += `|---|--------|---------|------|-----|\n`;
             
-            project.items.forEach(item => {
+            project.items.forEach((item, itemIndex) => {
+              const taskNumber = itemIndex + 1;
               if (item.content) {
                 const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
                 const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
@@ -31840,10 +31841,10 @@ async function getAllProjects() {
                 const title = item.content.title || 'タイトルなし';
                 const url = item.content.url || '';
                 
-                summaryMarkdown += `| ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
+                summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
               } else if (item.type === 'DRAFT_ISSUE') {
                 // ドラフトイシューの場合はcontentがnullの場合がある
-                summaryMarkdown += `| 📝 Draft | (ドラフト) | - | - |\n`;
+                summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
               }
             });
             summaryMarkdown += `\n`;
