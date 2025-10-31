@@ -31250,6 +31250,395 @@ function requireGithub () {
 
 var githubExports = requireGithub();
 
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+/**
+ * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
+ * @returns {Promise<void>}
+ * @throws {Error} エラーが発生した場合
+ */
+async function getAllIssues() {
+  const token = coreExports.getInput("github-token");
+  const octokit = githubExports.getOctokit(token);
+  
+  const { owner, repo } = githubExports.context.repo;
+  
+  coreExports.info(`リポジトリ ${owner}/${repo} のIssueを取得中...`);
+  
+  try {
+    // ページネーションを使用して全てのIssueを取得
+    const allIssues = [];
+    let page = 1;
+    const perPage = 100; // GitHub APIの最大値
+    
+    while (true) {
+      const { data: issues } = await octokit.rest.issues.listForRepo({
+        owner,
+        repo,
+        state: "all", // open, closed, all
+        per_page: perPage,
+        page: page,
+        sort: "created",
+        direction: "desc"
+      });
+      
+      if (issues.length === 0) {
+        break; // これ以上Issueがない場合は終了
+      }
+      
+      // Issueの詳細情報を取得（プルリクエストも含む）
+      allIssues.push(...issues);
+      coreExports.info(`ページ ${page}: ${issues.length}件のIssueを取得しました`);
+      
+      if (issues.length < perPage) {
+        break; // 最後のページ
+      }
+      
+      page++;
+    }
+    
+    coreExports.info(`合計 ${allIssues.length}件のIssueを取得しました`);
+    
+    // Issueデータを整形
+    /** @type {Issue[]} */
+    const formattedIssues = allIssues.map(issue => ({
+      number: issue.number,
+      title: issue.title,
+      state: /** @type {IssueState} */ (issue.state),
+      created_at: issue.created_at,
+      updated_at: issue.updated_at,
+      closed_at: issue.closed_at,
+      user: issue.user ? {
+        login: issue.user.login,
+        id: issue.user.id
+      } : null,
+      assignees: issue.assignees ? issue.assignees.map(assignee => ({
+        login: assignee.login,
+        id: assignee.id
+      })) : [],
+      labels: issue.labels ? issue.labels.map(label => {
+        const labelObj = typeof label === 'string' ? { name: label, color: null } : label;
+        return {
+          name: typeof labelObj.name === 'string' ? labelObj.name : '',
+          color: typeof labelObj.color === 'string' ? labelObj.color : null
+        };
+      }) : [],
+      milestone: issue.milestone ? {
+        title: issue.milestone.title,
+        state: issue.milestone.state
+      } : null,
+      comments: issue.comments,
+      body: issue.body || null,
+      pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
+      draft: issue.draft || false // ドラフトかどうかのフラグ（プルリクエストの場合）
+    }));
+    
+    // 出力として設定
+    coreExports.setOutput("issues", JSON.stringify(formattedIssues));
+    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
+    coreExports.setOutput("issue-count", allIssues.length.toString());
+    
+    coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
+    
+    // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
+    global.issuesData = formattedIssues;
+    
+  } catch (error) {
+    coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
+    throw error;
+  }
+}
+
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+// 共通のGraphQLフラグメント
+const ISSUE_FRAGMENT = `
+  ... on Issue {
+    id
+    number
+    title
+    state
+    createdAt
+    updatedAt
+    closedAt
+    url
+    assignees(first: 10) {
+      nodes {
+        id
+        login
+      }
+    }
+    labels(first: 10) {
+      nodes {
+        id
+        name
+        color
+      }
+    }
+  }
+`;
+
+const PULL_REQUEST_FRAGMENT = `
+  ... on PullRequest {
+    id
+    number
+    title
+    state
+    createdAt
+    updatedAt
+    closedAt
+    url
+    isDraft
+    assignees(first: 10) {
+      nodes {
+        id
+        login
+      }
+    }
+    labels(first: 10) {
+      nodes {
+        id
+        name
+        color
+      }
+    }
+  }
+`;
+
+const DRAFT_ISSUE_FRAGMENT = `
+  ... on DraftIssue {
+    id
+    title
+    body
+    createdAt
+    updatedAt
+  }
+`;
+
+const FIELD_VALUE_FRAGMENT = `
+  ... on ProjectV2ItemFieldSingleSelectValue {
+    field {
+      ... on ProjectV2SingleSelectField {
+        id
+        name
+      }
+    }
+    name
+  }
+  ... on ProjectV2ItemFieldTextValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    text
+  }
+  ... on ProjectV2ItemFieldNumberValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    number
+  }
+  ... on ProjectV2ItemFieldDateValue {
+    field {
+      ... on ProjectV2Field {
+        id
+        name
+      }
+    }
+    date
+  }
+`;
+
+const ITEM_FRAGMENT = `
+  id
+  type
+  content {
+    ${ISSUE_FRAGMENT}
+    ${PULL_REQUEST_FRAGMENT}
+    ${DRAFT_ISSUE_FRAGMENT}
+  }
+  fieldValues(first: 20) {
+    nodes {
+      ${FIELD_VALUE_FRAGMENT}
+    }
+  }
+`;
+
+const PROJECT_ITEMS_FRAGMENT = `
+  items(first: 100) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    nodes {
+      ${ITEM_FRAGMENT}
+    }
+  }
+`;
+
+const PROJECT_FRAGMENT = `
+  id
+  title
+  number
+  url
+  createdAt
+  updatedAt
+  closedAt
+  shortDescription
+  ${PROJECT_ITEMS_FRAGMENT}
+`;
+
+const PROJECTS_FRAGMENT = `
+  totalCount
+  pageInfo {
+    hasNextPage
+    endCursor
+  }
+  nodes {
+    ${PROJECT_FRAGMENT}
+  }
+`;
+
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+/**
+ * プロジェクトのアイテムを全件取得する共通関数
+ * @param {import('@octokit/core').Octokit} octokit - Octokitインスタンス
+ * @param {string} projectId - プロジェクトID
+ * @returns {Promise<Array<any>>} プロジェクトアイテムの配列
+ */
+async function getAllProjectItems(octokit, projectId) {
+  const allItems = [];
+  let hasNextPage = true;
+  let endCursor = null;
+  
+  while (hasNextPage) {
+    const itemsQuery = `
+      query($projectId: ID!, $after: String) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            items(first: 100, after: $after) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                ${ITEM_FRAGMENT}
+              }
+            }
+          }
+        }
+      }
+    `;
+    
+    const { node } = await octokit.graphql(itemsQuery, {
+      projectId: projectId,
+      after: endCursor
+    });
+    
+    if (node && node.items) {
+      allItems.push(...node.items.nodes);
+      hasNextPage = node.items.pageInfo.hasNextPage;
+      endCursor = node.items.pageInfo.endCursor;
+    } else {
+      hasNextPage = false;
+    }
+  }
+  
+  return allItems;
+}
+
+/**
+ * プロジェクトを全件取得する共通関数
+ * @param {import('@octokit/core').Octokit} octokit - Octokitインスタンス
+ * @param {('user'|'organization')} queryType - クエリタイプ（ユーザーまたは組織）
+ * @param {string|null} [organizationName=null] - 組織名（queryTypeが'organization'の場合に必要）
+ * @returns {Promise<Array<any>>} プロジェクトの配列
+ */
+async function fetchAllProjects(octokit, queryType, organizationName = null) {
+  const allProjects = [];
+  let hasNextPage = true;
+  let endCursor = null;
+  
+  while (hasNextPage) {
+    let query;
+    let variables = { after: endCursor };
+    
+    if (queryType === 'user') {
+      query = `
+        query($after: String) {
+          viewer {
+            projectsV2(first: 100, after: $after) {
+              ${PROJECTS_FRAGMENT}
+            }
+          }
+        }
+      `;
+    } else if (queryType === 'organization') {
+      if (!organizationName) {
+        throw new Error('organizationName is required when queryType is organization');
+      }
+      query = `
+        query($orgName: String!, $after: String) {
+          organization(login: $orgName) {
+            projectsV2(first: 100, after: $after) {
+              ${PROJECTS_FRAGMENT}
+            }
+          }
+        }
+      `;
+      variables.orgName = organizationName;
+    }
+    
+    if (!query) {
+      throw new Error('Query is not defined');
+    }
+    
+    const result = await octokit.graphql(query, variables);
+    const projectsData = queryType === 'user' 
+      ? result?.viewer?.projectsV2 
+      : result?.organization?.projectsV2;
+    
+    if (projectsData) {
+      const projects = projectsData.nodes || [];
+      coreExports.info(`${queryType === 'user' ? 'ユーザー' : '組織'}のプロジェクト（このページ）: ${projects.length}件`);
+      
+      // 各プロジェクトのアイテムを全件取得
+      for (const project of projects) {
+        if (project.items && project.items.pageInfo.hasNextPage && project.id) {
+          const allItems = await getAllProjectItems(octokit, project.id);
+          project.items.nodes = allItems;
+        }
+      }
+      
+      allProjects.push(...projects);
+      hasNextPage = projectsData.pageInfo.hasNextPage;
+      endCursor = projectsData.pageInfo.endCursor;
+    } else {
+      hasNextPage = false;
+    }
+  }
+  
+  return allProjects;
+}
+
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+/**
+ * GitHubプロジェクト（v2）を取得し、整形して出力する
+ * @returns {Promise<Project[]>} 整形されたプロジェクトデータの配列
+ * @throws {Error} エラーが発生した場合
+ */
 async function getAllProjects() {
   const token = coreExports.getInput("github-token");
   const projectScope = coreExports.getInput("project-scope");
@@ -31264,89 +31653,17 @@ async function getAllProjects() {
     // ユーザーレベルのプロジェクトを取得
     if (projectScope === "user") {
       coreExports.info("ユーザーレベルのプロジェクトを確認中...");
-      
-      // まずユーザー情報を確認
-      const userInfoQuery = `
-        query {
-          viewer {
-            login
-            id
-            projectsV2(first: 100) {
-              totalCount
-            }
-          }
-        }
-      `;
-      
-      const { viewer: userInfo } = await octokit.graphql(userInfoQuery);
-      coreExports.info(`ユーザー情報: ${userInfo.login} (ID: ${userInfo.id})`);
-      coreExports.info(`プロジェクト総数: ${userInfo.projectsV2.totalCount}`);
-      
-      const userQuery = `
-        query {
-          viewer {
-            projectsV2(first: 100) {
-              totalCount
-              nodes {
-                id
-                title
-                number
-                url
-                createdAt
-                updatedAt
-                closedAt
-                shortDescription
-              }
-            }
-          }
-        }
-      `;
-      
-      const { viewer } = await octokit.graphql(userQuery);
-      coreExports.info(`GraphQLレスポンス: ${JSON.stringify(viewer, null, 2)}`);
-      const userProjects = viewer?.projectsV2?.nodes || [];
-      coreExports.info(`ユーザーレベルのプロジェクト: ${userProjects.length}件`);
-      if (userProjects.length > 0) {
-        coreExports.info(`プロジェクト詳細: ${JSON.stringify(userProjects, null, 2)}`);
-      }
-      allProjects = [...allProjects, ...userProjects];
+      allProjects = await fetchAllProjects(octokit, 'user');
+      coreExports.info(`ユーザーレベルのプロジェクト（全件）: ${allProjects.length}件`);
     }
     
     // 組織レベルのプロジェクトを取得
     if (projectScope === "organization") {
       if (organizationName) {
         coreExports.info(`指定された組織 ${organizationName} のプロジェクトを確認中...`);
-        const orgQuery = `
-          query($orgName: String!) {
-            organization(login: $orgName) {
-              projectsV2(first: 100) {
-                totalCount
-                nodes {
-                  id
-                  title
-                  number
-                  url
-                  createdAt
-                  updatedAt
-                  closedAt
-                  shortDescription
-                }
-              }
-            }
-          }
-        `;
-        
-        const { organization } = await octokit.graphql(orgQuery, {
-          orgName: organizationName
-        });
-        
-        coreExports.info(`組織GraphQLレスポンス: ${JSON.stringify(organization, null, 2)}`);
-        const orgProjects = organization?.projectsV2?.nodes || [];
-        coreExports.info(`組織 ${organizationName} のプロジェクト: ${orgProjects.length}件`);
-        if (orgProjects.length > 0) {
-          coreExports.info(`組織プロジェクト詳細: ${JSON.stringify(orgProjects, null, 2)}`);
-        }
-        allProjects = [...allProjects, ...orgProjects];
+        // @ts-ignore - organizationNameはif文で確認済みなので、stringであることが保証されている
+        allProjects = await fetchAllProjects(octokit, 'organization', organizationName);
+        coreExports.info(`組織 ${organizationName} のプロジェクト（全件）: ${allProjects.length}件`);
       } else {
         coreExports.error("project-scopeがorganizationの場合、organization-nameの指定が必要です。");
         throw new Error("organization-name is required when project-scope is organization");
@@ -31364,154 +31681,13 @@ async function getAllProjects() {
       return [];
     }
     
-    // プロジェクトが存在する場合、詳細なクエリを実行
-    coreExports.info("プロジェクトの詳細情報を取得中...");
-    const detailedProjects = [];
-    
-    for (const project of allProjects) {
-      try {
-        const projectId = project.id;
-        coreExports.info(`プロジェクト "${project.title}" の詳細情報を取得中...`);
-        
-        const detailQuery = `
-          query($projectId: ID!) {
-            node(id: $projectId) {
-              ... on ProjectV2 {
-                id
-                title
-                number
-                url
-                createdAt
-                updatedAt
-                closedAt
-                shortDescription
-                items(first: 100) {
-                  totalCount
-                  nodes {
-                    id
-                    type
-                    content {
-                      ... on Issue {
-                        id
-                        number
-                        title
-                        state
-                        createdAt
-                        updatedAt
-                        closedAt
-                        url
-                        assignees(first: 10) {
-                          nodes {
-                            id
-                            login
-                          }
-                        }
-                        labels(first: 10) {
-                          nodes {
-                            id
-                            name
-                            color
-                          }
-                        }
-                      }
-                      ... on PullRequest {
-                        id
-                        number
-                        title
-                        state
-                        createdAt
-                        updatedAt
-                        closedAt
-                        url
-                        isDraft
-                        assignees(first: 10) {
-                          nodes {
-                            id
-                            login
-                          }
-                        }
-                        labels(first: 10) {
-                          nodes {
-                            id
-                            name
-                            color
-                          }
-                        }
-                      }
-                      ... on DraftIssue {
-                        id
-                        title
-                        body
-                        createdAt
-                        updatedAt
-                      }
-                    }
-                    fieldValues(first: 20) {
-                      nodes {
-                        ... on ProjectV2ItemFieldSingleSelectValue {
-                          field {
-                            ... on ProjectV2SingleSelectField {
-                              id
-                              name
-                            }
-                          }
-                          name
-                        }
-                        ... on ProjectV2ItemFieldTextValue {
-                          field {
-                            ... on ProjectV2Field {
-                              id
-                              name
-                            }
-                          }
-                          text
-                        }
-                        ... on ProjectV2ItemFieldNumberValue {
-                          field {
-                            ... on ProjectV2Field {
-                              id
-                              name
-                            }
-                          }
-                          number
-                        }
-                        ... on ProjectV2ItemFieldDateValue {
-                          field {
-                            ... on ProjectV2Field {
-                              id
-                              name
-                            }
-                          }
-                          date
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `;
-        
-        const { node } = await octokit.graphql(detailQuery, {
-          projectId: projectId
-        });
-        
-        if (node) {
-          detailedProjects.push(node);
-        }
-      } catch (error) {
-        coreExports.warning(`プロジェクト "${project.title}" の詳細取得でエラー: ${error.message}`);
-        // エラーが発生した場合でも、基本情報は含める
-        detailedProjects.push(project);
-      }
-    }
-    
-    const projects = detailedProjects;
+    // プロジェクトデータは既に詳細情報を含んでいる
+    const projects = allProjects;
     
     coreExports.info(`合計 ${projects.length}件のProjectを取得しました`);
     
     // プロジェクトデータを整形
+    /** @type {Project[]} */
     const formattedProjects = projects.map(project => ({
       id: project.id,
       title: project.title,
@@ -31592,94 +31768,15 @@ async function getAllProjects() {
   }
 }
 
-async function getAllIssues() {
-  const token = coreExports.getInput("github-token");
-  const octokit = githubExports.getOctokit(token);
-  
-  const { owner, repo } = githubExports.context.repo;
-  
-  coreExports.info(`リポジトリ ${owner}/${repo} のIssueを取得中...`);
-  
-  try {
-    // ページネーションを使用して全てのIssueを取得
-    const allIssues = [];
-    let page = 1;
-    const perPage = 100; // GitHub APIの最大値
-    
-    while (true) {
-      const { data: issues } = await octokit.rest.issues.listForRepo({
-        owner,
-        repo,
-        state: "all", // open, closed, all
-        per_page: perPage,
-        page: page,
-        sort: "created",
-        direction: "desc"
-      });
-      
-      if (issues.length === 0) {
-        break; // これ以上Issueがない場合は終了
-      }
-      
-      // Issueの詳細情報を取得（プルリクエストも含む）
-      allIssues.push(...issues);
-      coreExports.info(`ページ ${page}: ${issues.length}件のIssueを取得しました`);
-      
-      if (issues.length < perPage) {
-        break; // 最後のページ
-      }
-      
-      page++;
-    }
-    
-    coreExports.info(`合計 ${allIssues.length}件のIssueを取得しました`);
-    
-    // Issueデータを整形
-    const formattedIssues = allIssues.map(issue => ({
-      number: issue.number,
-      title: issue.title,
-      state: issue.state,
-      created_at: issue.created_at,
-      updated_at: issue.updated_at,
-      closed_at: issue.closed_at,
-      user: issue.user ? {
-        login: issue.user.login,
-        id: issue.user.id
-      } : null,
-      assignees: issue.assignees ? issue.assignees.map(assignee => ({
-        login: assignee.login,
-        id: assignee.id
-      })) : [],
-      labels: issue.labels ? issue.labels.map(label => ({
-        name: label.name,
-        color: label.color
-      })) : [],
-      milestone: issue.milestone ? {
-        title: issue.milestone.title,
-        state: issue.milestone.state
-      } : null,
-      comments: issue.comments,
-      body: issue.body,
-      pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
-      draft: issue.draft || false // ドラフトかどうかのフラグ（プルリクエストの場合）
-    }));
-    
-    // 出力として設定
-    coreExports.setOutput("issues", JSON.stringify(formattedIssues));
-    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
-    coreExports.setOutput("issue-count", allIssues.length.toString());
-    
-    coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
-    
-    // Issueデータをグローバル変数に保存（getAllProjectsで使用するため）
-    global.issuesData = formattedIssues;
-    
-  } catch (error) {
-    coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
-    throw error;
-  }
-}
+//@ts-check
+/// <reference path="./types.d.ts" />
 
+/**
+ * メイン実行関数
+ * IssueとProjectの両方を取得して処理する
+ * @returns {Promise<void>}
+ * @throws {Error} エラーが発生した場合
+ */
 async function main() {
   try {
     // IssueとProjectの両方を取得
