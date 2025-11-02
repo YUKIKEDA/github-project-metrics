@@ -3,14 +3,12 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getAllIssues } from "./issues.js";
-import { getAllProjects } from "./projects.js";
 import {
   initializeSummary,
   appendCompletionMessage,
   appendErrorMessage,
   appendToSummary,
   generateIssuesSummaryMarkdown,
-  generateProjectsSummaryMarkdown,
   saveJsonFiles
 } from "./io.js";
 
@@ -26,33 +24,25 @@ async function main() {
     const summaryPath = process.env.GITHUB_STEP_SUMMARY;
     initializeSummary(summaryPath);
     
-    // IssueとProjectの両方を取得
+    // Issueを取得（Project情報も統合される）
     core.info("=== GitHub Project Metrics 実行開始 ===");
     
-    // Issueを取得
+    // Issueを取得（内部でProject情報も取得・統合される）
     const issuesData = await getAllIssues();
-    
-    // Projectを取得
-    const projectsData = await getAllProjects();
     
     core.info("=== GitHub Project Metrics 実行完了 ===");
     
-    // GitHub Actions Summaryに書き込む
+    // GitHub Actions Summaryに書き込む（統合されたSummary）
     if (summaryPath) {
-      // IssuesのSummaryを追加
       const { owner, repo } = github.context.repo;
-      const issuesSummaryMarkdown = generateIssuesSummaryMarkdown(issuesData, owner, repo);
-      appendToSummary(summaryPath, issuesSummaryMarkdown);
-      
-      // ProjectsのSummaryを追加
-      const projectsSummaryMarkdown = generateProjectsSummaryMarkdown(projectsData);
-      appendToSummary(summaryPath, projectsSummaryMarkdown);
+      const summaryMarkdown = generateIssuesSummaryMarkdown(issuesData, owner, repo);
+      appendToSummary(summaryPath, summaryMarkdown);
     }
     
-    // JSONファイルを保存
+    // JSONファイルを保存（IssueデータにProject情報が統合されているため、Issueデータのみ保存）
     try {
       const outputPath = core.getInput("output-path");
-      saveJsonFiles(outputPath, issuesData, projectsData);
+      saveJsonFiles(outputPath, issuesData);
     } catch (writeError) {
       core.warning(`Failed to save JSON files: ${writeError.message}`);
     }

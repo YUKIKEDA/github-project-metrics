@@ -122,6 +122,22 @@ declare global {
   }
 
   /**
+   * Issueが属しているProject情報
+   */
+  interface IssueProject {
+    /** Project ID */
+    projectId: string;
+    /** Projectタイトル */
+    projectTitle: string;
+    /** Project番号 */
+    projectNumber: number;
+    /** Project URL */
+    projectUrl: string;
+    /** このIssueのProject内でのカスタムフィールド値 */
+    fieldValues: ProjectFieldValue[];
+  }
+
+  /**
    * GitHubリポジトリから取得したIssue（プルリクエスト含む）のデータ型
    */
   interface Issue {
@@ -155,6 +171,8 @@ declare global {
     draft: boolean;
     /** Issueイベントの配列（ステータス変更、ラベル変更、アサイニーなど） */
     events: IssueEvent[];
+    /** このIssueが属しているProject情報の配列（複数のProjectに属している可能性がある） */
+    projects: IssueProject[];
   }
 
   /**

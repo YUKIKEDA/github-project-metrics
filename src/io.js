@@ -51,8 +51,8 @@ export function appendErrorMessage(summaryPath, errorMessage) {
 }
 
 /**
- * IssuesデータのSummary Markdownを生成する
- * @param {Issue[]} formattedIssues - 整形されたIssue配列
+ * Issuesデータ（Project情報統合済み）から統合されたSummary Markdownを生成する
+ * @param {Issue[]} formattedIssues - 整形されたIssue配列（Project情報統合済み）
  * @param {string} owner - リポジトリのオーナー
  * @param {string} repo - リポジトリ名
  * @returns {string} Markdown文字列
@@ -62,26 +62,70 @@ export function generateIssuesSummaryMarkdown(formattedIssues, owner, repo) {
   const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
   const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
   
-  let summaryMarkdown = `## 📋 Issues メトリクス\n\n`;
+  // IssueデータからProject情報を抽出
+  /** @type {Map<string, { project: IssueProject, issueCount: number }>} */
+  const projectMap = new Map();
+  
+  formattedIssues.forEach(issue => {
+    issue.projects.forEach(project => {
+      const existing = projectMap.get(project.projectId);
+      if (!existing) {
+        projectMap.set(project.projectId, {
+          project: project,
+          issueCount: 1
+        });
+      } else {
+        existing.issueCount++;
+      }
+    });
+  });
+  
+  const uniqueProjects = Array.from(projectMap.values());
+  const totalProjects = uniqueProjects.length;
+  const issuesWithProjects = formattedIssues.filter(issue => issue.projects.length > 0).length;
+  
+  let summaryMarkdown = `## 📋 Issues & Projects メトリクス\n\n`;
   summaryMarkdown += `**リポジトリ**: \`${owner}/${repo}\`\n\n`;
-  summaryMarkdown += `### サマリー\n\n`;
+  
+  // Issuesサマリー
+  summaryMarkdown += `### Issues サマリー\n\n`;
   summaryMarkdown += `| 項目 | 数量 |\n`;
   summaryMarkdown += `|------|------|\n`;
   summaryMarkdown += `| **総数** | **${formattedIssues.length}** |\n`;
   summaryMarkdown += `| オープン | ${openIssues} |\n`;
   summaryMarkdown += `| クローズ | ${closedIssues} |\n`;
-  summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n\n`;
+  summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n`;
+  summaryMarkdown += `| Projectに属しているIssue | ${issuesWithProjects} |\n\n`;
+  
+  // Projectsサマリー
+  if (totalProjects > 0) {
+    summaryMarkdown += `### Projects サマリー\n\n`;
+    summaryMarkdown += `| 項目 | 数量 |\n`;
+    summaryMarkdown += `|------|------|\n`;
+    summaryMarkdown += `| **総プロジェクト数** | **${totalProjects}** |\n`;
+    summaryMarkdown += `| **総タスク数（Project内のIssue数）** | **${issuesWithProjects}** |\n\n`;
+    
+    // プロジェクト詳細
+    summaryMarkdown += `### プロジェクト一覧\n\n`;
+    uniqueProjects.forEach(({ project, issueCount }, index) => {
+      summaryMarkdown += `#### ${index + 1}. ${project.projectTitle}\n\n`;
+      summaryMarkdown += `- **URL**: [${project.projectUrl}](${project.projectUrl})\n`;
+      summaryMarkdown += `- **Issue数**: ${issueCount}件\n`;
+      summaryMarkdown += `\n`;
+    });
+  }
   
   // 最新のIssue一覧（最大10件）
   if (formattedIssues.length > 0) {
     summaryMarkdown += `### 最新のIssue（最大10件）\n\n`;
-    summaryMarkdown += `| # | タイトル | 状態 | 作成日 |\n`;
-    summaryMarkdown += `|---|---------|------|--------|\n`;
+    summaryMarkdown += `| # | タイトル | 状態 | Project数 | 作成日 |\n`;
+    summaryMarkdown += `|---|---------|------|-----------|--------|\n`;
     const recentIssues = formattedIssues.slice(0, 10);
     recentIssues.forEach(issue => {
       const issueUrl = `https://github.com/${owner}/${repo}/issues/${issue.number}`;
       const stateIcon = issue.state === 'open' ? '🟢' : '🔴';
-      summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${issue.created_at} |\n`;
+      const projectCount = issue.projects.length;
+      summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${projectCount}個 | ${issue.created_at} |\n`;
     });
     summaryMarkdown += `\n`;
   }
@@ -184,18 +228,14 @@ export function saveJsonFile(outputPath, filename, data) {
 }
 
 /**
- * IssuesとProjectsのJSONファイルを保存する
+ * Issuesデータ（Project情報統合済み）のJSONファイルを保存する
  * @param {string} outputPath - 出力先のパス
- * @param {Issue[]|null|undefined} issuesData - Issuesデータ（オプション）
- * @param {Project[]} projectsData - Projectsデータ
+ * @param {Issue[]|null|undefined} issuesData - Issuesデータ（Project情報統合済み）
  */
-export function saveJsonFiles(outputPath, issuesData, projectsData) {
-  // issues.jsonファイルを保存（issuesDataが渡された場合のみ）
+export function saveJsonFiles(outputPath, issuesData) {
+  // issues.jsonファイルを保存（Project情報が統合されているため、1つのファイルのみ）
   if (issuesData) {
     saveJsonFile(outputPath, 'issues.json', issuesData);
   }
-  
-  // projects.jsonファイルを保存
-  saveJsonFile(outputPath, 'projects.json', projectsData);
 }
 

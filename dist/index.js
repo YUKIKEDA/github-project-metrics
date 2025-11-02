@@ -31253,248 +31253,6 @@ var githubExports = requireGithub();
 //@ts-check
 /// <reference path="./types.d.ts" />
 
-/**
- * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
- * @returns {Promise<Issue[]>} 整形されたIssue配列
- * @throws {Error} エラーが発生した場合
- */
-async function getAllIssues() {
-  const token = coreExports.getInput("github-token");
-  const octokit = githubExports.getOctokit(token);
-  
-  const { owner, repo } = githubExports.context.repo;
-  
-  coreExports.info(`リポジトリ ${owner}/${repo} のIssueを取得中...`);
-  
-  try {
-    // ページネーションを使用して全てのIssueを取得
-    const allIssues = [];
-    let page = 1;
-    const perPage = 100; // GitHub APIの最大値
-    
-    while (true) {
-      const { data: issues } = await octokit.rest.issues.listForRepo({
-        owner,
-        repo,
-        state: "all", // open, closed, all
-        per_page: perPage,
-        page: page,
-        sort: "created",
-        direction: "desc"
-      });
-      
-      if (issues.length === 0) {
-        break; // これ以上Issueがない場合は終了
-      }
-      
-      // Issueの詳細情報を取得（プルリクエストも含む）
-      allIssues.push(...issues);
-      coreExports.info(`ページ ${page}: ${issues.length}件のIssueを取得しました`);
-      
-      if (issues.length < perPage) {
-        break; // 最後のページ
-      }
-      
-      page++;
-    }
-    
-    coreExports.info(`合計 ${allIssues.length}件のIssueを取得しました`);
-    
-    // 各Issueのイベントを取得
-    coreExports.info("各Issueのイベントを取得中...");
-    const issuesWithEvents = await Promise.all(
-      allIssues.map(async (issue) => {
-        try {
-          // Issueのイベントを取得
-          const allEvents = [];
-          let eventPage = 1;
-          const eventsPerPage = 100;
-          
-          // Issueイベントを取得（issues.listEvents）
-          while (true) {
-            try {
-              const { data: events } = await octokit.rest.issues.listEvents({
-                owner,
-                repo,
-                issue_number: issue.number,
-                per_page: eventsPerPage,
-                page: eventPage
-              });
-              
-              if (events.length === 0) {
-                break;
-              }
-              
-              allEvents.push(...events);
-              
-              if (events.length < eventsPerPage) {
-                break;
-              }
-              
-              eventPage++;
-            } catch (eventError) {
-              // プルリクエストの場合はイベント取得が失敗する可能性があるため、エラーを無視
-              if (eventError.status === 404) {
-                coreExports.warning(`Issue #${issue.number} のイベントを取得できませんでした（404エラー）`);
-              } else {
-                coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${eventError.message}`);
-              }
-              break;
-            }
-          }
-          
-          // イベント取得結果をログ出力（デバッグ用）
-          if (allEvents.length > 0) {
-            coreExports.info(`Issue #${issue.number}: ${allEvents.length}件のイベントを取得しました`);
-          }
-          
-          return {
-            issue,
-            events: allEvents
-          };
-        } catch (error) {
-          coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${error.message}`);
-          return {
-            issue,
-            events: []
-          };
-        }
-      })
-    );
-    
-    coreExports.info("イベント取得が完了しました");
-    
-    // イベント取得結果を確認
-    const totalEvents = issuesWithEvents.reduce((sum, { events }) => sum + events.length, 0);
-    const issuesWithNoEvents = issuesWithEvents.filter(({ events }) => events.length === 0).length;
-    coreExports.info(`取得したイベント総数: ${totalEvents}件`);
-    coreExports.info(`イベントが0件のIssue: ${issuesWithNoEvents}件`);
-    
-    // Issueデータを整形
-    /** @type {Issue[]} */
-    const formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
-      number: issue.number,
-      title: issue.title,
-      state: /** @type {IssueState} */ (issue.state),
-      created_at: issue.created_at,
-      updated_at: issue.updated_at,
-      closed_at: issue.closed_at,
-      user: issue.user ? {
-        login: issue.user.login,
-        id: issue.user.id
-      } : null,
-      assignees: issue.assignees ? issue.assignees.map(assignee => ({
-        login: assignee.login,
-        id: assignee.id
-      })) : [],
-      labels: issue.labels ? issue.labels.map(label => {
-        const labelObj = typeof label === 'string' ? { name: label, color: null } : label;
-        return {
-          name: typeof labelObj.name === 'string' ? labelObj.name : '',
-          color: typeof labelObj.color === 'string' ? labelObj.color : null
-        };
-      }) : [],
-      milestone: issue.milestone ? {
-        title: issue.milestone.title,
-        state: issue.milestone.state
-      } : null,
-      comments: issue.comments,
-      body: issue.body || null,
-      pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
-      draft: issue.draft || false, // ドラフトかどうかのフラグ（プルリクエストの場合）
-      events: events.length > 0 ? events.map(event => {
-        // @ts-ignore - GitHub APIのイベントオブジェクトは動的なプロパティを持つ
-        const eventAny = /** @type {any} */ (event);
-        return {
-          id: event.id,
-          event: /** @type {IssueEventType} */ (event.event),
-          created_at: event.created_at,
-          actor: event.actor ? {
-            login: event.actor.login,
-            id: event.actor.id
-          } : null,
-          assignee: eventAny.assignee ? {
-            login: eventAny.assignee.login,
-            id: eventAny.assignee.id
-          } : null,
-          label: eventAny.label ? {
-            name: eventAny.label.name,
-            color: eventAny.label.color || null
-          } : null,
-          milestone: eventAny.milestone ? {
-            title: eventAny.milestone.title
-          } : null,
-          rename: eventAny.rename ? {
-            from: eventAny.rename.from,
-            to: eventAny.rename.to
-          } : null,
-          requested_reviewer: eventAny.requested_reviewer ? {
-            login: eventAny.requested_reviewer.login,
-            id: eventAny.requested_reviewer.id
-          } : null,
-          requested_team: eventAny.requested_team ? {
-            name: eventAny.requested_team.name,
-            id: eventAny.requested_team.id
-          } : null,
-          commit_id: eventAny.commit_id || null,
-          commit_url: eventAny.commit_url || null
-        };
-      }) : []
-    }));
-    
-    // 出力として設定
-    coreExports.setOutput("issues", JSON.stringify(formattedIssues));
-    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
-    coreExports.setOutput("issue-count", allIssues.length.toString());
-    
-    coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
-    
-    // Issueデータのサマリーを表示
-    coreExports.info("=== Issueデータ（整形済み） ===");
-    coreExports.info(JSON.stringify(formattedIssues, null, 2));
-    
-    // Issueサマリー情報を表示
-    const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
-    const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
-    const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
-    
-    coreExports.info("=== Issueサマリー ===");
-    coreExports.info(`総数: ${formattedIssues.length}件`);
-    coreExports.info(`オープン: ${openIssues}件`);
-    coreExports.info(`クローズ: ${closedIssues}件`);
-    coreExports.info(`プルリクエスト: ${pullRequests}件`);
-    
-    // イベントサマリー
-    const issuesWithEventsCount = formattedIssues.filter(issue => issue.events.length > 0).length;
-    const totalEventCount = formattedIssues.reduce((sum, issue) => sum + issue.events.length, 0);
-    coreExports.info(`イベントがあるIssue: ${issuesWithEventsCount}件`);
-    coreExports.info(`イベント総数: ${totalEventCount}件`);
-    
-    // イベントタイプ別の集計
-    const eventTypeCounts = {};
-    formattedIssues.forEach(issue => {
-      issue.events.forEach(event => {
-        eventTypeCounts[event.event] = (eventTypeCounts[event.event] || 0) + 1;
-      });
-    });
-    if (Object.keys(eventTypeCounts).length > 0) {
-      coreExports.info("=== イベントタイプ別の集計 ===");
-      Object.entries(eventTypeCounts).forEach(([eventType, count]) => {
-        coreExports.info(`${eventType}: ${count}件`);
-      });
-    }
-    
-    return formattedIssues;
-    
-  } catch (error) {
-    coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
-    throw error;
-  }
-}
-
-//@ts-check
-/// <reference path="./types.d.ts" />
-
 // 共通のGraphQLフラグメント
 const ISSUE_FRAGMENT = `
   ... on Issue {
@@ -31989,6 +31747,295 @@ async function getAllProjects() {
 /// <reference path="./types.d.ts" />
 
 /**
+ * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
+ * @returns {Promise<Issue[]>} 整形されたIssue配列
+ * @throws {Error} エラーが発生した場合
+ */
+async function getAllIssues() {
+  const token = coreExports.getInput("github-token");
+  const octokit = githubExports.getOctokit(token);
+  
+  const { owner, repo } = githubExports.context.repo;
+  
+  coreExports.info(`リポジトリ ${owner}/${repo} のIssueを取得中...`);
+  
+  try {
+    // ページネーションを使用して全てのIssueを取得
+    const allIssues = [];
+    let page = 1;
+    const perPage = 100; // GitHub APIの最大値
+    
+    while (true) {
+      const { data: issues } = await octokit.rest.issues.listForRepo({
+        owner,
+        repo,
+        state: "all", // open, closed, all
+        per_page: perPage,
+        page: page,
+        sort: "created",
+        direction: "desc"
+      });
+      
+      if (issues.length === 0) {
+        break; // これ以上Issueがない場合は終了
+      }
+      
+      // Issueの詳細情報を取得（プルリクエストも含む）
+      allIssues.push(...issues);
+      coreExports.info(`ページ ${page}: ${issues.length}件のIssueを取得しました`);
+      
+      if (issues.length < perPage) {
+        break; // 最後のページ
+      }
+      
+      page++;
+    }
+    
+    coreExports.info(`合計 ${allIssues.length}件のIssueを取得しました`);
+    
+    // 各Issueのイベントを取得
+    coreExports.info("各Issueのイベントを取得中...");
+    const issuesWithEvents = await Promise.all(
+      allIssues.map(async (issue) => {
+        try {
+          // Issueのイベントを取得
+          const allEvents = [];
+          let eventPage = 1;
+          const eventsPerPage = 100;
+          
+          // Issueイベントを取得（issues.listEvents）
+          while (true) {
+            try {
+              const { data: events } = await octokit.rest.issues.listEvents({
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: eventsPerPage,
+                page: eventPage
+              });
+              
+              if (events.length === 0) {
+                break;
+              }
+              
+              allEvents.push(...events);
+              
+              if (events.length < eventsPerPage) {
+                break;
+              }
+              
+              eventPage++;
+            } catch (eventError) {
+              // プルリクエストの場合はイベント取得が失敗する可能性があるため、エラーを無視
+              if (eventError.status === 404) {
+                coreExports.warning(`Issue #${issue.number} のイベントを取得できませんでした（404エラー）`);
+              } else {
+                coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${eventError.message}`);
+              }
+              break;
+            }
+          }
+          
+          // イベント取得結果をログ出力（デバッグ用）
+          if (allEvents.length > 0) {
+            coreExports.info(`Issue #${issue.number}: ${allEvents.length}件のイベントを取得しました`);
+          }
+          
+          return {
+            issue,
+            events: allEvents
+          };
+        } catch (error) {
+          coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${error.message}`);
+          return {
+            issue,
+            events: []
+          };
+        }
+      })
+    );
+    
+    coreExports.info("イベント取得が完了しました");
+    
+    // イベント取得結果を確認
+    const totalEvents = issuesWithEvents.reduce((sum, { events }) => sum + events.length, 0);
+    const issuesWithNoEvents = issuesWithEvents.filter(({ events }) => events.length === 0).length;
+    coreExports.info(`取得したイベント総数: ${totalEvents}件`);
+    coreExports.info(`イベントが0件のIssue: ${issuesWithNoEvents}件`);
+    
+    // Issueデータを整形
+    /** @type {Issue[]} */
+    let formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
+      number: issue.number,
+      title: issue.title,
+      state: /** @type {IssueState} */ (issue.state),
+      created_at: issue.created_at,
+      updated_at: issue.updated_at,
+      closed_at: issue.closed_at,
+      user: issue.user ? {
+        login: issue.user.login,
+        id: issue.user.id
+      } : null,
+      assignees: issue.assignees ? issue.assignees.map(assignee => ({
+        login: assignee.login,
+        id: assignee.id
+      })) : [],
+      labels: issue.labels ? issue.labels.map(label => {
+        const labelObj = typeof label === 'string' ? { name: label, color: null } : label;
+        return {
+          name: typeof labelObj.name === 'string' ? labelObj.name : '',
+          color: typeof labelObj.color === 'string' ? labelObj.color : null
+        };
+      }) : [],
+      milestone: issue.milestone ? {
+        title: issue.milestone.title,
+        state: issue.milestone.state
+      } : null,
+      comments: issue.comments,
+      body: issue.body || null,
+      pull_request: issue.pull_request ? true : false, // プルリクエストかどうかのフラグ
+      draft: issue.draft || false, // ドラフトかどうかのフラグ（プルリクエストの場合）
+      events: events.length > 0 ? events.map(event => {
+        // @ts-ignore - GitHub APIのイベントオブジェクトは動的なプロパティを持つ
+        const eventAny = /** @type {any} */ (event);
+        return {
+          id: event.id,
+          event: /** @type {IssueEventType} */ (event.event),
+          created_at: event.created_at,
+          actor: event.actor ? {
+            login: event.actor.login,
+            id: event.actor.id
+          } : null,
+          assignee: eventAny.assignee ? {
+            login: eventAny.assignee.login,
+            id: eventAny.assignee.id
+          } : null,
+          label: eventAny.label ? {
+            name: eventAny.label.name,
+            color: eventAny.label.color || null
+          } : null,
+          milestone: eventAny.milestone ? {
+            title: eventAny.milestone.title
+          } : null,
+          rename: eventAny.rename ? {
+            from: eventAny.rename.from,
+            to: eventAny.rename.to
+          } : null,
+          requested_reviewer: eventAny.requested_reviewer ? {
+            login: eventAny.requested_reviewer.login,
+            id: eventAny.requested_reviewer.id
+          } : null,
+          requested_team: eventAny.requested_team ? {
+            name: eventAny.requested_team.name,
+            id: eventAny.requested_team.id
+          } : null,
+          commit_id: eventAny.commit_id || null,
+          commit_url: eventAny.commit_url || null
+        };
+      }) : [],
+      projects: [] // 後でProject情報をマージする
+    }));
+    
+    // Projectデータを取得して、各IssueにProject情報をマージ
+    coreExports.info("Projectデータを取得して、各Issueにマージ中...");
+    try {
+      const projectsData = await getAllProjects();
+      
+      // Issue番号でProject情報をマップする
+      /** @type {Map<number, IssueProject[]>} */
+      const issueToProjectsMap = new Map();
+      
+      projectsData.forEach(project => {
+        project.items.forEach(item => {
+          // Issue/PRのコンテンツがある場合のみ処理
+          if (item.content && item.content.number !== null && item.content.number !== undefined) {
+            const issueNumber = item.content.number;
+            /** @type {IssueProject} */
+            const issueProject = {
+              projectId: project.id,
+              projectTitle: project.title,
+              projectNumber: project.number,
+              projectUrl: project.url,
+              fieldValues: item.fieldValues || []
+            };
+            const existingProjects = issueToProjectsMap.get(issueNumber);
+            if (existingProjects) {
+              existingProjects.push(issueProject);
+            } else {
+              issueToProjectsMap.set(issueNumber, [issueProject]);
+            }
+          }
+        });
+      });
+      
+      // 各IssueにProject情報を追加
+      formattedIssues = formattedIssues.map(issue => ({
+        ...issue,
+        projects: issueToProjectsMap.get(issue.number) || []
+      }));
+      
+      const issuesWithProjects = formattedIssues.filter(issue => issue.projects.length > 0).length;
+      coreExports.info(`Project情報をマージしました。Projectに属しているIssue: ${issuesWithProjects}件`);
+    } catch (projectError) {
+      // Project取得に失敗した場合は警告を出すが、処理は継続する
+      coreExports.warning(`Projectデータの取得に失敗しました: ${projectError.message}`);
+      coreExports.warning("Project情報なしでIssueデータを返します");
+    }
+    
+    // 出力として設定
+    coreExports.setOutput("issues", JSON.stringify(formattedIssues));
+    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
+    coreExports.setOutput("issue-count", allIssues.length.toString());
+    
+    coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
+    
+    // Issueデータのサマリーを表示
+    coreExports.info("=== Issueデータ（整形済み） ===");
+    coreExports.info(JSON.stringify(formattedIssues, null, 2));
+    
+    // Issueサマリー情報を表示
+    const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
+    const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
+    const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
+    
+    coreExports.info("=== Issueサマリー ===");
+    coreExports.info(`総数: ${formattedIssues.length}件`);
+    coreExports.info(`オープン: ${openIssues}件`);
+    coreExports.info(`クローズ: ${closedIssues}件`);
+    coreExports.info(`プルリクエスト: ${pullRequests}件`);
+    
+    // イベントサマリー
+    const issuesWithEventsCount = formattedIssues.filter(issue => issue.events.length > 0).length;
+    const totalEventCount = formattedIssues.reduce((sum, issue) => sum + issue.events.length, 0);
+    coreExports.info(`イベントがあるIssue: ${issuesWithEventsCount}件`);
+    coreExports.info(`イベント総数: ${totalEventCount}件`);
+    
+    // イベントタイプ別の集計
+    const eventTypeCounts = {};
+    formattedIssues.forEach(issue => {
+      issue.events.forEach(event => {
+        eventTypeCounts[event.event] = (eventTypeCounts[event.event] || 0) + 1;
+      });
+    });
+    if (Object.keys(eventTypeCounts).length > 0) {
+      coreExports.info("=== イベントタイプ別の集計 ===");
+      Object.entries(eventTypeCounts).forEach(([eventType, count]) => {
+        coreExports.info(`${eventType}: ${count}件`);
+      });
+    }
+    
+    return formattedIssues;
+    
+  } catch (error) {
+    coreExports.error(`Issue取得中にエラーが発生しました: ${error.message}`);
+    throw error;
+  }
+}
+
+//@ts-check
+/// <reference path="./types.d.ts" />
+
+/**
  * GitHub Actions Summaryファイルへの書き込み処理を集約したIOモジュール
  */
 
@@ -32035,8 +32082,8 @@ function appendErrorMessage(summaryPath, errorMessage) {
 }
 
 /**
- * IssuesデータのSummary Markdownを生成する
- * @param {Issue[]} formattedIssues - 整形されたIssue配列
+ * Issuesデータ（Project情報統合済み）から統合されたSummary Markdownを生成する
+ * @param {Issue[]} formattedIssues - 整形されたIssue配列（Project情報統合済み）
  * @param {string} owner - リポジトリのオーナー
  * @param {string} repo - リポジトリ名
  * @returns {string} Markdown文字列
@@ -32046,91 +32093,72 @@ function generateIssuesSummaryMarkdown(formattedIssues, owner, repo) {
   const closedIssues = formattedIssues.filter(issue => issue.state === 'closed').length;
   const pullRequests = formattedIssues.filter(issue => issue.pull_request).length;
   
-  let summaryMarkdown = `## 📋 Issues メトリクス\n\n`;
+  // IssueデータからProject情報を抽出
+  /** @type {Map<string, { project: IssueProject, issueCount: number }>} */
+  const projectMap = new Map();
+  
+  formattedIssues.forEach(issue => {
+    issue.projects.forEach(project => {
+      const existing = projectMap.get(project.projectId);
+      if (!existing) {
+        projectMap.set(project.projectId, {
+          project: project,
+          issueCount: 1
+        });
+      } else {
+        existing.issueCount++;
+      }
+    });
+  });
+  
+  const uniqueProjects = Array.from(projectMap.values());
+  const totalProjects = uniqueProjects.length;
+  const issuesWithProjects = formattedIssues.filter(issue => issue.projects.length > 0).length;
+  
+  let summaryMarkdown = `## 📋 Issues & Projects メトリクス\n\n`;
   summaryMarkdown += `**リポジトリ**: \`${owner}/${repo}\`\n\n`;
-  summaryMarkdown += `### サマリー\n\n`;
+  
+  // Issuesサマリー
+  summaryMarkdown += `### Issues サマリー\n\n`;
   summaryMarkdown += `| 項目 | 数量 |\n`;
   summaryMarkdown += `|------|------|\n`;
   summaryMarkdown += `| **総数** | **${formattedIssues.length}** |\n`;
   summaryMarkdown += `| オープン | ${openIssues} |\n`;
   summaryMarkdown += `| クローズ | ${closedIssues} |\n`;
-  summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n\n`;
+  summaryMarkdown += `| プルリクエスト | ${pullRequests} |\n`;
+  summaryMarkdown += `| Projectに属しているIssue | ${issuesWithProjects} |\n\n`;
+  
+  // Projectsサマリー
+  if (totalProjects > 0) {
+    summaryMarkdown += `### Projects サマリー\n\n`;
+    summaryMarkdown += `| 項目 | 数量 |\n`;
+    summaryMarkdown += `|------|------|\n`;
+    summaryMarkdown += `| **総プロジェクト数** | **${totalProjects}** |\n`;
+    summaryMarkdown += `| **総タスク数（Project内のIssue数）** | **${issuesWithProjects}** |\n\n`;
+    
+    // プロジェクト詳細
+    summaryMarkdown += `### プロジェクト一覧\n\n`;
+    uniqueProjects.forEach(({ project, issueCount }, index) => {
+      summaryMarkdown += `#### ${index + 1}. ${project.projectTitle}\n\n`;
+      summaryMarkdown += `- **URL**: [${project.projectUrl}](${project.projectUrl})\n`;
+      summaryMarkdown += `- **Issue数**: ${issueCount}件\n`;
+      summaryMarkdown += `\n`;
+    });
+  }
   
   // 最新のIssue一覧（最大10件）
   if (formattedIssues.length > 0) {
     summaryMarkdown += `### 最新のIssue（最大10件）\n\n`;
-    summaryMarkdown += `| # | タイトル | 状態 | 作成日 |\n`;
-    summaryMarkdown += `|---|---------|------|--------|\n`;
+    summaryMarkdown += `| # | タイトル | 状態 | Project数 | 作成日 |\n`;
+    summaryMarkdown += `|---|---------|------|-----------|--------|\n`;
     const recentIssues = formattedIssues.slice(0, 10);
     recentIssues.forEach(issue => {
       const issueUrl = `https://github.com/${owner}/${repo}/issues/${issue.number}`;
       const stateIcon = issue.state === 'open' ? '🟢' : '🔴';
-      summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${issue.created_at} |\n`;
+      const projectCount = issue.projects.length;
+      summaryMarkdown += `| [#${issue.number}](${issueUrl}) | ${issue.title} | ${stateIcon} ${issue.state} | ${projectCount}個 | ${issue.created_at} |\n`;
     });
     summaryMarkdown += `\n`;
-  }
-  
-  return summaryMarkdown;
-}
-
-/**
- * ProjectsデータのSummary Markdownを生成する
- * @param {Project[]} formattedProjects - 整形されたProject配列
- * @returns {string} Markdown文字列
- */
-function generateProjectsSummaryMarkdown(formattedProjects) {
-  const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
-  
-  let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
-  summaryMarkdown += `### サマリー\n\n`;
-  summaryMarkdown += `| 項目 | 数量 |\n`;
-  summaryMarkdown += `|------|------|\n`;
-  summaryMarkdown += `| **総プロジェクト数** | **${formattedProjects.length}** |\n`;
-  summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
-  
-  // プロジェクト詳細
-  if (formattedProjects.length > 0) {
-    summaryMarkdown += `### プロジェクト一覧\n\n`;
-    formattedProjects.forEach((project, index) => {
-      summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
-      summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
-      summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
-      summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
-      summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
-      if (project.shortDescription) {
-        summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
-      }
-      summaryMarkdown += `\n`;
-      
-      // プロジェクト内のタスク一覧を表示
-      if (project.items && project.items.length > 0) {
-        summaryMarkdown += `**タスク一覧**:\n\n`;
-        summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
-        summaryMarkdown += `|---|--------|---------|------|-----|\n`;
-        
-        project.items.forEach((item, itemIndex) => {
-          const taskNumber = itemIndex + 1;
-          if (item.content) {
-            const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
-            const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
-            const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
-            const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
-            const title = item.content.title || 'タイトルなし';
-            const url = item.content.url || '';
-            
-            summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
-          } else if (item.type === 'DRAFT_ISSUE') {
-            // ドラフトイシューの場合はcontentがnullの場合がある
-            summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
-          }
-        });
-        summaryMarkdown += `\n`;
-      } else if (project.totalItems > 0) {
-        summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
-      } else {
-        summaryMarkdown += `**タスク**: なし\n\n`;
-      }
-    });
   }
   
   return summaryMarkdown;
@@ -32168,19 +32196,15 @@ function saveJsonFile(outputPath, filename, data) {
 }
 
 /**
- * IssuesとProjectsのJSONファイルを保存する
+ * Issuesデータ（Project情報統合済み）のJSONファイルを保存する
  * @param {string} outputPath - 出力先のパス
- * @param {Issue[]|null|undefined} issuesData - Issuesデータ（オプション）
- * @param {Project[]} projectsData - Projectsデータ
+ * @param {Issue[]|null|undefined} issuesData - Issuesデータ（Project情報統合済み）
  */
-function saveJsonFiles(outputPath, issuesData, projectsData) {
-  // issues.jsonファイルを保存（issuesDataが渡された場合のみ）
+function saveJsonFiles(outputPath, issuesData) {
+  // issues.jsonファイルを保存（Project情報が統合されているため、1つのファイルのみ）
   if (issuesData) {
     saveJsonFile(outputPath, 'issues.json', issuesData);
   }
-  
-  // projects.jsonファイルを保存
-  saveJsonFile(outputPath, 'projects.json', projectsData);
 }
 
 //@ts-check
@@ -32198,33 +32222,25 @@ async function main() {
     const summaryPath = process.env.GITHUB_STEP_SUMMARY;
     initializeSummary(summaryPath);
     
-    // IssueとProjectの両方を取得
+    // Issueを取得（Project情報も統合される）
     coreExports.info("=== GitHub Project Metrics 実行開始 ===");
     
-    // Issueを取得
+    // Issueを取得（内部でProject情報も取得・統合される）
     const issuesData = await getAllIssues();
-    
-    // Projectを取得
-    const projectsData = await getAllProjects();
     
     coreExports.info("=== GitHub Project Metrics 実行完了 ===");
     
-    // GitHub Actions Summaryに書き込む
+    // GitHub Actions Summaryに書き込む（統合されたSummary）
     if (summaryPath) {
-      // IssuesのSummaryを追加
       const { owner, repo } = githubExports.context.repo;
-      const issuesSummaryMarkdown = generateIssuesSummaryMarkdown(issuesData, owner, repo);
-      appendToSummary(summaryPath, issuesSummaryMarkdown);
-      
-      // ProjectsのSummaryを追加
-      const projectsSummaryMarkdown = generateProjectsSummaryMarkdown(projectsData);
-      appendToSummary(summaryPath, projectsSummaryMarkdown);
+      const summaryMarkdown = generateIssuesSummaryMarkdown(issuesData, owner, repo);
+      appendToSummary(summaryPath, summaryMarkdown);
     }
     
-    // JSONファイルを保存
+    // JSONファイルを保存（IssueデータにProject情報が統合されているため、Issueデータのみ保存）
     try {
       const outputPath = coreExports.getInput("output-path");
-      saveJsonFiles(outputPath, issuesData, projectsData);
+      saveJsonFiles(outputPath, issuesData);
     } catch (writeError) {
       coreExports.warning(`Failed to save JSON files: ${writeError.message}`);
     }
