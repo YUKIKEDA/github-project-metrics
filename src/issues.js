@@ -2,6 +2,7 @@
 /// <reference path="./types.d.ts" />
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { getAllProjects } from "./projects.js";
 
 /**
  * GitHubリポジトリのIssue（プルリクエスト含む）を取得し、整形して出力する
@@ -122,7 +123,7 @@ export async function getAllIssues() {
     
     // Issueデータを整形
     /** @type {Issue[]} */
-    const formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
+    let formattedIssues = issuesWithEvents.map(({ issue, events }) => ({
       number: issue.number,
       title: issue.title,
       state: /** @type {IssueState} */ (issue.state),
@@ -189,8 +190,55 @@ export async function getAllIssues() {
           commit_id: eventAny.commit_id || null,
           commit_url: eventAny.commit_url || null
         };
-      }) : []
+      }) : [],
+      projects: [] // 後でProject情報をマージする
     }));
+    
+    // Projectデータを取得して、各IssueにProject情報をマージ
+    core.info("Projectデータを取得して、各Issueにマージ中...");
+    try {
+      const projectsData = await getAllProjects();
+      
+      // Issue番号でProject情報をマップする
+      /** @type {Map<number, IssueProject[]>} */
+      const issueToProjectsMap = new Map();
+      
+      projectsData.forEach(project => {
+        project.items.forEach(item => {
+          // Issue/PRのコンテンツがある場合のみ処理
+          if (item.content && item.content.number !== null && item.content.number !== undefined) {
+            const issueNumber = item.content.number;
+            /** @type {IssueProject} */
+            const issueProject = {
+              projectId: project.id,
+              projectTitle: project.title,
+              projectNumber: project.number,
+              projectUrl: project.url,
+              fieldValues: item.fieldValues || []
+            };
+            const existingProjects = issueToProjectsMap.get(issueNumber);
+            if (existingProjects) {
+              existingProjects.push(issueProject);
+            } else {
+              issueToProjectsMap.set(issueNumber, [issueProject]);
+            }
+          }
+        });
+      });
+      
+      // 各IssueにProject情報を追加
+      formattedIssues = formattedIssues.map(issue => ({
+        ...issue,
+        projects: issueToProjectsMap.get(issue.number) || []
+      }));
+      
+      const issuesWithProjects = formattedIssues.filter(issue => issue.projects.length > 0).length;
+      core.info(`Project情報をマージしました。Projectに属しているIssue: ${issuesWithProjects}件`);
+    } catch (projectError) {
+      // Project取得に失敗した場合は警告を出すが、処理は継続する
+      core.warning(`Projectデータの取得に失敗しました: ${projectError.message}`);
+      core.warning("Project情報なしでIssueデータを返します");
+    }
     
     // 出力として設定
     core.setOutput("issues", JSON.stringify(formattedIssues));
