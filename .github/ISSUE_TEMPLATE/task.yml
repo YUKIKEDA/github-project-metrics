@@ -50,7 +50,6 @@ body:
         - [ ] 
         - [ ] 
         - [ ] 
-      render: markdown
     validations:
       required: true
 
