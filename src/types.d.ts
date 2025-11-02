@@ -347,6 +347,123 @@ declare global {
    * Issueデータを保存するグローバル変数
    */
   var issuesData: Issue[] | undefined;
+
+  /**
+   * 記述統計量の型定義
+   */
+  interface DescriptiveStatsResult {
+    count: number;
+    mean: number;
+    median: number;
+    mode: number;
+    std_dev: number;
+    variance: number;
+    min: number;
+    max: number;
+    q1: number;
+    q3: number;
+    p90: number;
+    p95: number;
+    iqr: number;
+    cv: number;
+    skewness: number;
+    kurtosis: number;
+  }
+
+  /**
+   * 外れ値情報
+   */
+  interface OutlierInfo {
+    index: number;
+    value: number;
+    isOutlier: boolean;
+    zScore: number;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+  }
+
+  /**
+   * 相関分析の結果
+   */
+  interface CorrelationResult {
+    r: number;
+    rSquared: number;
+    tStatistic: number;
+    pValue: number;
+    significant: boolean;
+    strength: 'weak' | 'moderate' | 'strong';
+    sampleSize: number;
+  }
+
+  /**
+   * 相関分析の要因
+   */
+  interface TopFactor {
+    factor: string;
+    correlation: number;
+    absCorrelation: number;
+    pValue: number;
+    strength: 'weak' | 'moderate' | 'strong';
+    rSquared: number;
+  }
+
+  /**
+   * メトリクス抽出結果
+   */
+  interface ExtractedMetrics {
+    leadTimes: number[];
+    cycleTimes: number[];
+    reviewTimes: number[];
+    complexities: number[];
+    comments: number[];
+    assignees: number[];
+  }
+
+  /**
+   * パターンベース異常検知の結果
+   */
+  interface PatternAnomaly {
+    type: string;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    metric: string;
+    current: number;
+    baseline?: number;
+    threshold?: number;
+    increase_pct?: number;
+    std_deviations?: number;
+    cv?: number;
+    message: string;
+  }
+
+  /**
+   * 異常検知結果
+   */
+  interface Anomalies {
+    outliers: OutlierInfo[];
+    patterns: PatternAnomaly[];
+  }
+
+  /**
+   * 相関分析結果
+   */
+  interface Correlations {
+    topFactors: TopFactor[];
+  }
+
+  /**
+   * 統計分析結果
+   */
+  interface StatisticalAnalysisResults {
+    descriptive: {
+      leadTime: DescriptiveStatsResult | null;
+      cycleTime: DescriptiveStatsResult | null;
+      reviewTime: DescriptiveStatsResult | null;
+      complexity: DescriptiveStatsResult | null;
+      comments: DescriptiveStatsResult | null;
+      assignees: DescriptiveStatsResult | null;
+    };
+    anomalies: Anomalies;
+    correlations: Correlations;
+  }
 }
 
 export {};
