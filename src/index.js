@@ -9,7 +9,6 @@ import {
   appendErrorMessage,
   appendToSummary,
   generateIssuesSummaryMarkdown,
-  saveJsonFiles,
   saveJsonFile
 } from "./io.js";
 import {
@@ -64,7 +63,7 @@ async function main() {
     // JSONファイルを保存（IssueデータにProject情報が統合されているため、Issueデータのみ保存）
     try {
       const outputPath = core.getInput("output-path");
-      saveJsonFiles(outputPath, issuesData);
+      saveJsonFile(outputPath, 'issues.json', issuesData);
       
       // 統計分析結果もJSONで保存
       if (analysisResults) {

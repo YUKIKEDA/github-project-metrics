@@ -438,7 +438,8 @@ declare global {
    * 異常検知結果
    */
   interface Anomalies {
-    outliers: OutlierInfo[];
+    iqrOutliers: OutlierInfo[];
+    zScoreOutliers: OutlierInfo[];
     patterns: PatternAnomaly[];
   }
 
@@ -446,7 +447,14 @@ declare global {
    * 相関分析結果
    */
   interface Correlations {
-    topFactors: TopFactor[];
+    topFactors: {
+      leadTime: TopFactor[];
+      cycleTime: TopFactor[];
+      reviewTime: TopFactor[];
+      complexity: TopFactor[];
+      comments: TopFactor[];
+      assignees: TopFactor[];
+    };
   }
 
   /**

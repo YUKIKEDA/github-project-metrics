@@ -134,69 +134,6 @@ export function generateIssuesSummaryMarkdown(formattedIssues, owner, repo) {
 }
 
 /**
- * ProjectsデータのSummary Markdownを生成する
- * @param {Project[]} formattedProjects - 整形されたProject配列
- * @returns {string} Markdown文字列
- */
-export function generateProjectsSummaryMarkdown(formattedProjects) {
-  const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
-  
-  let summaryMarkdown = `## 📊 Projects メトリクス\n\n`;
-  summaryMarkdown += `### サマリー\n\n`;
-  summaryMarkdown += `| 項目 | 数量 |\n`;
-  summaryMarkdown += `|------|------|\n`;
-  summaryMarkdown += `| **総プロジェクト数** | **${formattedProjects.length}** |\n`;
-  summaryMarkdown += `| **総タスク数** | **${totalTasks}** |\n\n`;
-  
-  // プロジェクト詳細
-  if (formattedProjects.length > 0) {
-    summaryMarkdown += `### プロジェクト一覧\n\n`;
-    formattedProjects.forEach((project, index) => {
-      summaryMarkdown += `#### ${index + 1}. ${project.title}\n\n`;
-      summaryMarkdown += `- **URL**: [${project.url}](${project.url})\n`;
-      summaryMarkdown += `- **タスク数**: ${project.totalItems}\n`;
-      summaryMarkdown += `- **作成日**: ${project.createdAt}\n`;
-      summaryMarkdown += `- **更新日**: ${project.updatedAt}\n`;
-      if (project.shortDescription) {
-        summaryMarkdown += `- **説明**: ${project.shortDescription}\n`;
-      }
-      summaryMarkdown += `\n`;
-      
-      // プロジェクト内のタスク一覧を表示
-      if (project.items && project.items.length > 0) {
-        summaryMarkdown += `**タスク一覧**:\n\n`;
-        summaryMarkdown += `| # | タイプ | タイトル | 状態 | URL |\n`;
-        summaryMarkdown += `|---|--------|---------|------|-----|\n`;
-        
-        project.items.forEach((item, itemIndex) => {
-          const taskNumber = itemIndex + 1;
-          if (item.content) {
-            const typeIcon = item.type === 'PULL_REQUEST' ? '🔀' : item.type === 'ISSUE' ? '📋' : '📝';
-            const typeLabel = item.type === 'PULL_REQUEST' ? 'PR' : item.type === 'ISSUE' ? 'Issue' : 'Draft';
-            const stateIcon = item.content.state === 'OPEN' ? '🟢' : '🔴';
-            const stateLabel = item.content.state === 'OPEN' ? 'Open' : item.content.state === 'CLOSED' ? 'Closed' : item.content.state || 'N/A';
-            const title = item.content.title || 'タイトルなし';
-            const url = item.content.url || '';
-            
-            summaryMarkdown += `| ${taskNumber} | ${typeIcon} ${typeLabel} | ${title} | ${stateIcon} ${stateLabel} | [リンク](${url}) |\n`;
-          } else if (item.type === 'DRAFT_ISSUE') {
-            // ドラフトイシューの場合はcontentがnullの場合がある
-            summaryMarkdown += `| ${taskNumber} | 📝 Draft | (ドラフト) | - | - |\n`;
-          }
-        });
-        summaryMarkdown += `\n`;
-      } else if (project.totalItems > 0) {
-        summaryMarkdown += `**タスク**: ${project.totalItems}件（詳細データなし）\n\n`;
-      } else {
-        summaryMarkdown += `**タスク**: なし\n\n`;
-      }
-    });
-  }
-  
-  return summaryMarkdown;
-}
-
-/**
  * JSONファイルを保存する
  * @param {string} outputPath - 出力先のパス（相対パスの場合、GITHUB_WORKSPACE基準）
  * @param {string} filename - ファイル名
@@ -226,16 +163,3 @@ export function saveJsonFile(outputPath, filename, data) {
     throw error;
   }
 }
-
-/**
- * Issuesデータ（Project情報統合済み）のJSONファイルを保存する
- * @param {string} outputPath - 出力先のパス
- * @param {Issue[]|null|undefined} issuesData - Issuesデータ（Project情報統合済み）
- */
-export function saveJsonFiles(outputPath, issuesData) {
-  // issues.jsonファイルを保存（Project情報が統合されているため、1つのファイルのみ）
-  if (issuesData) {
-    saveJsonFile(outputPath, 'issues.json', issuesData);
-  }
-}
-

@@ -32195,18 +32195,6 @@ function saveJsonFile(outputPath, filename, data) {
   }
 }
 
-/**
- * Issuesデータ（Project情報統合済み）のJSONファイルを保存する
- * @param {string} outputPath - 出力先のパス
- * @param {Issue[]|null|undefined} issuesData - Issuesデータ（Project情報統合済み）
- */
-function saveJsonFiles(outputPath, issuesData) {
-  // issues.jsonファイルを保存（Project情報が統合されているため、1つのファイルのみ）
-  if (issuesData) {
-    saveJsonFile(outputPath, 'issues.json', issuesData);
-  }
-}
-
 //@ts-check
 /// <reference path="./types.d.ts" />
 
@@ -32405,6 +32393,31 @@ function detectOutliersIQR(values, multiplier = 1.5) {
       isOutlier: value < lowerBound || value > upperBound,
       zScore: zScore,
       severity: calculateSeverity(zScore)
+    };
+  });
+}
+
+/**
+ * Zスコアによる異常検知
+ * @param {number[]} values - 数値配列
+ * @param {number} [threshold=3.0] - 閾値（デフォルト3.0）
+ * @returns {OutlierInfo[]} 外れ値情報の配列
+ * 各要素は {index, value, zScore, isOutlier, severity} を含む
+ */
+function detectOutliersZScore(values, threshold = 3.0) {
+  const stats = calculateStats(values);
+  if (!stats) return [];
+  
+  return values.map((value, index) => {
+    const zScore = (value - stats.mean) / stats.std_dev;
+    const absZ = Math.abs(zScore);
+    
+    return {
+      index: index,
+      value: value,
+      zScore: zScore,
+      isOutlier: absZ > threshold,
+      severity: absZ > 3 ? 'critical' : absZ > 2 ? 'high' : 'medium'
     };
   });
 }
@@ -32774,7 +32787,8 @@ function performFullAnalysis(issues) {
       assignees: null
     },
     anomalies: {
-      outliers: [],
+      iqrOutliers: [],
+      zScoreOutliers: [],
       patterns: []
     },
     correlations: {
@@ -32843,8 +32857,10 @@ function performFullAnalysis(issues) {
 
   // 2. 異常検知
   coreExports.info('Step 2: 異常検知を実行中...');
-  const leadTimeOutliers = detectOutliersIQR(allMetrics.leadTimes);
-  results.anomalies.outliers = leadTimeOutliers.filter(o => o.isOutlier);
+  const iqrOutliers = detectOutliersIQR(allMetrics.leadTimes);
+  const zScoreOutliers = detectOutliersZScore(allMetrics.leadTimes);
+  results.anomalies.iqrOutliers = iqrOutliers.filter(o => o.isOutlier);
+  results.anomalies.zScoreOutliers = zScoreOutliers.filter(o => o.isOutlier);
   
   // パターンベース異常検知（過去データと現在データを比較）
   coreExports.info('Step 2.5: パターンベース異常検知を実行中...');
@@ -32918,7 +32934,8 @@ function generateAnalysisSummary(analysisResults) {
   
   // 異常検知
   summary += `### 異常検知結果\n\n`;
-  summary += `- 検出された外れ値: ${analysisResults.anomalies.outliers.length}件\n`;
+  summary += `- IQR法で検出された外れ値: ${analysisResults.anomalies.iqrOutliers.length}件\n`;
+  summary += `- Zスコア法で検出された外れ値: ${analysisResults.anomalies.zScoreOutliers.length}件\n`;
   summary += `- 検出されたパターン異常: ${analysisResults.anomalies.patterns.length}件\n\n`;
   
   // パターンベース異常検知の詳細
@@ -33005,7 +33022,7 @@ async function main() {
     // JSONファイルを保存（IssueデータにProject情報が統合されているため、Issueデータのみ保存）
     try {
       const outputPath = coreExports.getInput("output-path");
-      saveJsonFiles(outputPath, issuesData);
+      saveJsonFile(outputPath, 'issues.json', issuesData);
       
       // 統計分析結果もJSONで保存
       if (analysisResults) {
