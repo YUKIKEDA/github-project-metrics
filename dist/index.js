@@ -32424,14 +32424,20 @@ function detectOutliersZScore(values, threshold = 3.0) {
 
 /**
  * 標準正規分布の累積分布関数
+ * Abramowitz and Stegun の近似式を使用
  * @param {number} z - 標準化された値（Zスコア）
  * @returns {number} 累積確率（0から1の間）
  */
 function normalCDF(z) {
-  const t = 1 / (1 + 0.2316419 * Math.abs(z));
-  const d = 0.3989423 * Math.exp(-z * z / 2);
-  const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + 
-           t * (-1.821256 + t * 1.330274))));
+  // Abramowitz and Stegun の近似式の係数
+  const RATIONAL_APPROX_COEFF = 0.2316419;
+  const NORMALIZATION_CONST = 0.3989423; // 1/√(2π)
+  const POLY_COEFFS = [0.3193815, -0.3565638, 1.781478, -1.821256, 1.330274];
+  
+  const t = 1 / (1 + RATIONAL_APPROX_COEFF * Math.abs(z));
+  const d = NORMALIZATION_CONST * Math.exp(-z * z / 2);
+  const p = d * t * (POLY_COEFFS[0] + t * (POLY_COEFFS[1] + t * (POLY_COEFFS[2] + 
+           t * (POLY_COEFFS[3] + t * POLY_COEFFS[4]))));
   
   return z > 0 ? 1 - p : p;
 }
@@ -32562,6 +32568,11 @@ function findTopFactors(variables, targetVar = 'leadTime') {
  * @returns {PatternAnomaly[]} 検出された問題の配列
  */
 function detectPatternAnomalies(currentMetrics, historicalMetrics) {
+  // 異常検知の閾値
+  const CRITICAL_INCREASE_THRESHOLD = 1.5; // 急増と判断する閾値（1.5倍）
+  const HIGH_INCREASE_THRESHOLD = 1.3; // 高い増加と判断する閾値（1.3倍）
+  const CV_UNPREDICTABILITY_THRESHOLD = 1.0; // 変動係数の予測可能性低下閾値（1.0）
+  
   /** @type {PatternAnomaly[]} */
   const problems = [];
   
@@ -32570,9 +32581,9 @@ function detectPatternAnomalies(currentMetrics, historicalMetrics) {
     return detectPatternAnomaliesFromCurrentOnly(currentMetrics);
   }
   
-  // 1. メトリクスの急増（1.5倍以上）
+  // 1. メトリクスの急増（CRITICAL_INCREASE_THRESHOLD倍以上）
   if (currentMetrics.leadTime && historicalMetrics.leadTime && 
-      currentMetrics.leadTime.p90 > historicalMetrics.leadTime.p90 * 1.5) {
+      currentMetrics.leadTime.p90 > historicalMetrics.leadTime.p90 * CRITICAL_INCREASE_THRESHOLD) {
     const increaseRatio = currentMetrics.leadTime.p90 / historicalMetrics.leadTime.p90;
     problems.push({
       type: 'lead_time_spike',
@@ -32585,9 +32596,9 @@ function detectPatternAnomalies(currentMetrics, historicalMetrics) {
     });
   }
   
-  // 2. 平均値の急増（1.5倍以上）
+  // 2. 平均値の急増（CRITICAL_INCREASE_THRESHOLD倍以上）
   if (currentMetrics.leadTime && historicalMetrics.leadTime && 
-      currentMetrics.leadTime.mean > historicalMetrics.leadTime.mean * 1.5) {
+      currentMetrics.leadTime.mean > historicalMetrics.leadTime.mean * CRITICAL_INCREASE_THRESHOLD) {
     const increaseRatio = currentMetrics.leadTime.mean / historicalMetrics.leadTime.mean;
     problems.push({
       type: 'lead_time_mean_spike',
@@ -32602,17 +32613,17 @@ function detectPatternAnomalies(currentMetrics, historicalMetrics) {
   
   // 3. 変動係数の増加（予測困難性）
   if (currentMetrics.cycleTime && historicalMetrics.cycleTime) {
-    if (currentMetrics.cycleTime.cv > 1.0) {
+    if (currentMetrics.cycleTime.cv > CV_UNPREDICTABILITY_THRESHOLD) {
       problems.push({
         type: 'inconsistent_velocity',
         severity: 'medium',
         metric: 'cycle_time_variability',
         current: currentMetrics.cycleTime.cv,
         cv: currentMetrics.cycleTime.cv,
-        message: `変動係数が1.0を超過（${currentMetrics.cycleTime.cv.toFixed(2)}）。予測可能性が低下しています`
+        message: `変動係数が${CV_UNPREDICTABILITY_THRESHOLD}を超過（${currentMetrics.cycleTime.cv.toFixed(2)}）。予測可能性が低下しています`
       });
     }
-    if (currentMetrics.cycleTime.cv > historicalMetrics.cycleTime.cv * 1.5) {
+    if (currentMetrics.cycleTime.cv > historicalMetrics.cycleTime.cv * CRITICAL_INCREASE_THRESHOLD) {
       problems.push({
         type: 'increasing_variability',
         severity: 'high',
@@ -32627,7 +32638,7 @@ function detectPatternAnomalies(currentMetrics, historicalMetrics) {
   
   // 4. サイクルタイムの増加
   if (currentMetrics.cycleTime && historicalMetrics.cycleTime && 
-      currentMetrics.cycleTime.mean > historicalMetrics.cycleTime.mean * 1.3) {
+      currentMetrics.cycleTime.mean > historicalMetrics.cycleTime.mean * HIGH_INCREASE_THRESHOLD) {
     const increaseRatio = currentMetrics.cycleTime.mean / historicalMetrics.cycleTime.mean;
     problems.push({
       type: 'cycle_time_increase',
@@ -32649,34 +32660,39 @@ function detectPatternAnomalies(currentMetrics, historicalMetrics) {
  * @returns {PatternAnomaly[]} 検出された問題の配列
  */
 function detectPatternAnomaliesFromCurrentOnly(descriptive) {
+  // 異常検知の閾値
+  const CV_UNPREDICTABILITY_THRESHOLD = 1.0; // 変動係数の予測可能性低下閾値（1.0）
+  const SKEWNESS_THRESHOLD = 2.0; // 歪度の非対称分布閾値（2.0）
+  const EXTREME_TASK_RATIO_THRESHOLD = 3.0; // P95が平均の何倍以上で極端なタスクと判断するか（3.0倍）
+  
   /** @type {PatternAnomaly[]} */
   const problems = [];
   
-  // 変動係数が1.0を超える場合（予測可能性低下）
-  if (descriptive.cycleTime && descriptive.cycleTime.cv > 1.0) {
+  // 変動係数がCV_UNPREDICTABILITY_THRESHOLDを超える場合（予測可能性低下）
+  if (descriptive.cycleTime && descriptive.cycleTime.cv > CV_UNPREDICTABILITY_THRESHOLD) {
     problems.push({
       type: 'inconsistent_velocity',
       severity: 'medium',
       metric: 'cycle_time_variability',
       current: descriptive.cycleTime.cv,
       cv: descriptive.cycleTime.cv,
-      message: `変動係数が1.0を超過（${descriptive.cycleTime.cv.toFixed(2)}）。予測可能性が低下しています`
+      message: `変動係数が${CV_UNPREDICTABILITY_THRESHOLD}を超過（${descriptive.cycleTime.cv.toFixed(2)}）。予測可能性が低下しています`
     });
   }
   
-  if (descriptive.leadTime && descriptive.leadTime.cv > 1.0) {
+  if (descriptive.leadTime && descriptive.leadTime.cv > CV_UNPREDICTABILITY_THRESHOLD) {
     problems.push({
       type: 'inconsistent_lead_time',
       severity: 'medium',
       metric: 'lead_time_variability',
       current: descriptive.leadTime.cv,
       cv: descriptive.leadTime.cv,
-      message: `リードタイムの変動係数が1.0を超過（${descriptive.leadTime.cv.toFixed(2)}）。予測可能性が低下しています`
+      message: `リードタイムの変動係数が${CV_UNPREDICTABILITY_THRESHOLD}を超過（${descriptive.leadTime.cv.toFixed(2)}）。予測可能性が低下しています`
     });
   }
   
   // 歪度が大きい場合（非対称分布）
-  if (descriptive.leadTime && Math.abs(descriptive.leadTime.skewness) > 2.0) {
+  if (descriptive.leadTime && Math.abs(descriptive.leadTime.skewness) > SKEWNESS_THRESHOLD) {
     problems.push({
       type: 'skewed_distribution',
       severity: 'medium',
@@ -32686,8 +32702,8 @@ function detectPatternAnomaliesFromCurrentOnly(descriptive) {
     });
   }
   
-  // P95が平均の3倍以上の場合（極端に長いタスクが存在）
-  if (descriptive.leadTime && descriptive.leadTime.p95 > descriptive.leadTime.mean * 3) {
+  // P95が平均のEXTREME_TASK_RATIO_THRESHOLD倍以上の場合（極端に長いタスクが存在）
+  if (descriptive.leadTime && descriptive.leadTime.p95 > descriptive.leadTime.mean * EXTREME_TASK_RATIO_THRESHOLD) {
     const ratio = descriptive.leadTime.p95 / descriptive.leadTime.mean;
     problems.push({
       type: 'extreme_tasks',
@@ -32737,11 +32753,37 @@ function extractMetrics(issues, cutoffDate = null) {
     // リードタイム（作成からクローズまでの日数）
     const leadTime = (closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
     
-    // サイクルタイム（更新からクローズまでの日数、またはリードタイム全体）
-    const cycleTime = leadTime;
+    // サイクルタイム（作業開始からクローズまでの日数）
+    // 最初のassignedイベント、またはupdated_atからクローズまで
+    let cycleStartTime = created;
+    const assignedEvent = issue.events?.find(e => e.event === 'assigned');
+    if (assignedEvent) {
+      cycleStartTime = new Date(assignedEvent.created_at);
+    } else if (issue.updated_at) {
+      // assignedイベントがない場合、最初の更新時点を作業開始と仮定
+      const updated = new Date(issue.updated_at);
+      // 作成直後の更新は除外（作成日時との差が1時間未満）
+      if (updated.getTime() - created.getTime() > 60 * 60 * 1000) {
+        cycleStartTime = updated;
+      }
+    }
+    const cycleTime = (closed.getTime() - cycleStartTime.getTime()) / (1000 * 60 * 60 * 24);
     
-    // レビュー時間（簡易的にサイクルタイムを使用）
-    const reviewTime = cycleTime;
+    // レビュー時間（PRの場合、レビュー開始からクローズ/マージまでの日数）
+    let reviewTime = 0;
+    if (issue.pull_request) {
+      // レビュー開始時点を探す
+      const reviewStartEvent = issue.events?.find(e => 
+        e.event === 'review_requested' || e.event === 'ready_for_review'
+      );
+      if (reviewStartEvent) {
+        const reviewStart = new Date(reviewStartEvent.created_at);
+        reviewTime = (closed.getTime() - reviewStart.getTime()) / (1000 * 60 * 60 * 24);
+      } else {
+        // レビューイベントがない場合、PR作成からクローズまで（簡易計算）
+        reviewTime = leadTime;
+      }
+    }
     
     // 複雑度（ラベル数を使用）
     const complexity = issue.labels.length;
@@ -32771,11 +32813,11 @@ function extractMetrics(issues, cutoffDate = null) {
 }
 
 /**
- * 完全な統計分析を実行
+ * 統計分析を実行して結果を返す
  * @param {Issue[]} issues - Issue配列
  * @returns {StatisticalAnalysisResults} 分析結果
  */
-function performFullAnalysis(issues) {
+function performStatisticalAnalysis(issues) {
   /** @type {StatisticalAnalysisResults} */
   const results = {
     descriptive: {
@@ -32792,7 +32834,14 @@ function performFullAnalysis(issues) {
       patterns: []
     },
     correlations: {
-      topFactors: []
+      topFactors: {
+        leadTime: [],
+        cycleTime: [],
+        reviewTime: [],
+        complexity: [],
+        comments: [],
+        assignees: []
+      }
     }
   };
 
@@ -32811,6 +32860,8 @@ function performFullAnalysis(issues) {
     coreExports.warning('クローズ済みIssueが存在しないため、統計分析をスキップします');
     return results;
   }
+
+  //TODO: 分析期間をユーザーが指定できるようにする
   
   // 期間を分割（過去50%と現在50%）
   const cutoffIndex = Math.floor(closedIssues.length / 2);
@@ -32895,19 +32946,14 @@ function performFullAnalysis(issues) {
     assignees: allMetrics.assignees
   };
   
-  results.correlations.topFactors = findTopFactors(variables, 'leadTime');
+  // 全ての目的変数に対して相関分析を実行
+  const targetVariables = ['leadTime', 'cycleTime', 'reviewTime', 'complexity', 'comments', 'assignees'];
+  for (const targetVar of targetVariables) {
+    results.correlations.topFactors[targetVar] = findTopFactors(variables, targetVar);
+  }
 
   coreExports.info('統計分析が完了しました');
   return results;
-}
-
-/**
- * 統計分析を実行して結果を返す
- * @param {Issue[]} issues - Issue配列
- * @returns {StatisticalAnalysisResults} 分析結果
- */
-function performStatisticalAnalysis(issues) {
-  return performFullAnalysis(issues);
 }
 
 /**
@@ -32943,8 +32989,8 @@ function generateAnalysisSummary(analysisResults) {
     summary += `#### パターン異常の詳細\n\n`;
     analysisResults.anomalies.patterns.forEach((pattern, index) => {
       const severityIcon = pattern.severity === 'critical' ? '🔴' : 
-                           pattern.severity === 'high' ? '🟠' : 
-                           pattern.severity === 'medium' ? '🟡' : '🟢';
+                          pattern.severity === 'high' ? '🟠' : 
+                          pattern.severity === 'medium' ? '🟡' : '🟢';
       summary += `${index + 1}. **${severityIcon} ${pattern.type}** (${pattern.severity})\n`;
       summary += `   - メトリクス: ${pattern.metric}\n`;
       summary += `   - 現在値: ${pattern.current.toFixed(2)}\n`;
@@ -32959,14 +33005,25 @@ function generateAnalysisSummary(analysisResults) {
   }
   
   // 相関分析
-  if (analysisResults.correlations.topFactors.length > 0) {
-    summary += `### リードタイムと相関する要因（上位5件）\n\n`;
-    summary += `| 要因 | 相関係数 | 強度 |\n`;
-    summary += `|------|---------|------|\n`;
-    analysisResults.correlations.topFactors.slice(0, 5).forEach(factor => {
-      summary += `| ${factor.factor} | ${factor.correlation.toFixed(3)} | ${factor.strength} |\n`;
-    });
-    summary += `\n`;
+  const targetVariableLabels = {
+    leadTime: 'リードタイム',
+    cycleTime: 'サイクルタイム',
+    reviewTime: 'レビュー時間',
+    complexity: '複雑度',
+    comments: 'コメント数',
+    assignees: '担当者数'
+  };
+  
+  for (const [targetVar, factors] of Object.entries(analysisResults.correlations.topFactors)) {
+    if (factors.length > 0) {
+      summary += `### ${targetVariableLabels[targetVar]}と相関する要因（上位5件）\n\n`;
+      summary += `| 要因 | 相関係数 | 強度 |\n`;
+      summary += `|------|---------|------|\n`;
+      factors.slice(0, 5).forEach(factor => {
+        summary += `| ${factor.factor} | ${factor.correlation.toFixed(3)} | ${factor.strength} |\n`;
+      });
+      summary += `\n`;
+    }
   }
   
   return summary;
