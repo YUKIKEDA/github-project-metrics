@@ -524,6 +524,71 @@ function detectPatternAnomaliesFromCurrentOnly(descriptive) {
 }
 
 /**
+ * 複雑度を計算（GitHub ProjectのEstimationフィールドを使用）
+ * @param {Issue} issue - Issueオブジェクト
+ * @returns {number} 複雑度スコア（見積もり時間に基づいて分類された数値）
+ * 
+ * 計算方法:
+ * - Issueが属している全てのProjectから"Estimation"フィールドを検索
+ * - 見積もり時間（時間単位）に基づいて複雑度を分類:
+ *   - 0-40時間以下: Low (10)
+ *   - 40時間超-80時間以下: Middle (20)
+ *   - 80時間超: High (30)
+ * - Estimationフィールドが存在しない、または値が設定されていない場合は0を返す
+ * 
+ * 注: 10の倍数を使用することで、後で中間値（例：LowとMiddleの間に15など）を追加する際の拡張性を確保
+ */
+function calculateComplexity(issue) {
+  // 複雑度分類の閾値（時間単位）
+  const MIDDLE_THRESHOLD = 40;  // Middleの開始閾値（40時間超）
+  const HIGH_THRESHOLD = 80;    // Highの開始閾値（80時間超）
+  
+  // 複雑度スコア（10の倍数を使用して拡張性を確保）
+  const COMPLEXITY_LOW = 10;    // Low
+  const COMPLEXITY_MIDDLE = 20; // Middle
+  const COMPLEXITY_HIGH = 30;   // High
+  
+  // Issueが属している全てのProjectからEstimationフィールドを検索
+  if (!issue.projects || issue.projects.length === 0) {
+    return 0;
+  }
+  
+  // 全てのProjectのfieldValuesからEstimationフィールドを探す
+  for (const project of issue.projects) {
+    if (!project.fieldValues || project.fieldValues.length === 0) {
+      continue;
+    }
+    
+    // Estimationフィールドを検索
+    const estimationField = project.fieldValues.find(
+      fieldValue => fieldValue.fieldName === 'Estimation' || fieldValue.fieldName === 'estimation'
+    );
+    
+    if (estimationField && estimationField.value !== null && estimationField.value !== undefined) {
+      // 数値として扱う
+      const hours = typeof estimationField.value === 'number' 
+        ? estimationField.value 
+        : parseFloat(estimationField.value);
+      
+      // 有効な数値の場合のみ分類
+      if (!isNaN(hours) && isFinite(hours) && hours >= 0) {
+        // 見積もり時間に基づいて複雑度を分類
+        if (hours > HIGH_THRESHOLD) {
+          return COMPLEXITY_HIGH; // High
+        } else if (hours > MIDDLE_THRESHOLD) {
+          return COMPLEXITY_MIDDLE; // Middle
+        } else {
+          return COMPLEXITY_LOW; // Low（40時間以下）
+        }
+      }
+    }
+  }
+  
+  // Estimationフィールドが見つからない、または値が設定されていない場合は0を返す
+  return 0;
+}
+
+/**
  * Issueデータからメトリクスを抽出
  * @param {Issue[]} issues - Issue配列
  * @param {Date|null} [cutoffDate=null] - 分割基準日（この日以前を過去期間とする。nullの場合は全期間）
@@ -531,7 +596,7 @@ function detectPatternAnomaliesFromCurrentOnly(descriptive) {
  * - leadTimes: リードタイム（日数）の配列
  * - cycleTimes: サイクルタイム（日数）の配列
  * - reviewTimes: レビュー時間（日数）の配列
- * - complexities: 複雑度（ラベル数）の配列
+ * - complexities: 複雑度スコアの配列
  * - comments: コメント数の配列
  * - assignees: 担当者数の配列
  * 注: クローズされていないIssueは除外される
@@ -589,8 +654,8 @@ function extractMetrics(issues, cutoffDate = null) {
       }
     }
     
-    // 複雑度（ラベル数を使用）
-    const complexity = issue.labels.length;
+    // 複雑度（複数の要因を組み合わせて計算）
+    const complexity = calculateComplexity(issue);
     
     // コメント数
     const numComments = issue.comments || 0;
