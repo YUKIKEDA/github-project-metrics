@@ -2,6 +2,8 @@
 
 GitHubのIssueやProjectの情報を取得してチームの生産性を計測するためのGitHubアクションです。
 
+📖 **ドキュメント**: [GitHub Pages](https://YUKIKEDA.github.io/github-project-metrics/)で詳細なドキュメントを公開しています。
+
 ## 機能
 
 - リポジトリの全Issueを取得（オープン・クローズ済み両方、プルリクエストも含む）
