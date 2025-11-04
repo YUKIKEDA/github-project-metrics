@@ -3,3 +3,11 @@ node_modules
 
 # Environment variables
 .env
+
+# Jekyll
+Gemfile.lock
+_site
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+vendor
