@@ -17,7 +17,7 @@ const config: Config = {
   //--------------------------------------------------
 
   // Set the production url of your site here
-  url: 'https://YUKIKEDA/github-project-sample',
+  url: 'https://yukikeda.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/github-project-sample/',
