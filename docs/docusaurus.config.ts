@@ -20,12 +20,12 @@ const config: Config = {
   url: 'https://yukikeda.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/github-project-sample/',
+  baseUrl: '/github-project-metrics/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'YUKIKEDA', // Usually your GitHub org/user name.
-  projectName: 'github-project-sample', // Usually your repo name.
+  projectName: 'github-project-metrics', // Usually your repo name.
 
   //--------------------------------------------------
 
