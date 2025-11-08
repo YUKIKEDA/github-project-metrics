@@ -14,22 +14,10 @@ inputs:
   output-path: # JSONファイルの出力先
     description: JSONファイルの出力先ディレクトリ（デフォルトはGitHubワークスペース）
     required: false
-
-outputs:
-  issues: # id of output
-    description: JSON形式で取得したIssueデータ（整形済み）
-  raw-issues: # id of output
-    description: JSON形式で取得したIssueデータ（整形前の生データ）
-  issue-count: # id of output
-    description: 取得したIssueの総数
-  projects: # id of output
-    description: JSON形式で取得したProjectデータ（整形済み）
-  raw-projects: # id of output
-    description: JSON形式で取得したProjectデータ（整形前の生データ）
-  project-count: # id of output
-    description: 取得したProjectの総数
-  total-tasks: # id of output
-    description: 全Projectのタスク総数
+  debug-json:
+    description: 生データの出力と詳細ログを有効にする（true/false）
+    required: false
+    default: "false"
 
 runs:
   using: node20

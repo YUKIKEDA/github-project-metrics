@@ -38,44 +38,9 @@ GitHubのIssueやProjectの情報を取得してチームの生産性を計測�
 - `output-path: ./data` → `GITHUB_WORKSPACE/data/issues.json`に出力
 - 未指定 → `GITHUB_WORKSPACE/issues.json`に出力
 
-## Outputs
+### `debug-json`
 
-### `issues`
-
-JSON形式で取得したIssueデータの配列（Project情報統合済み）。各Issueには以下の情報が含まれます：
-- `number`: Issue番号
-- `title`: Issueタイトル
-- `state`: Issueの状態（open/closed）
-- `created_at`: 作成日時
-- `updated_at`: 更新日時
-- `closed_at`: クローズ日時
-- `user`: 作成者情報
-- `assignees`: アサイニー情報
-- `labels`: ラベル情報
-- `milestone`: マイルストーン情報
-- `comments`: コメント数
-- `body`: Issue本文
-- `pull_request`: プルリクエストかどうかのフラグ
-- `draft`: ドラフトかどうかのフラグ（プルリクエストの場合）
-- `events`: Issueイベントの配列（ステータス変更、ラベル変更、アサイニーなど）
-- `projects`: このIssueが属しているProject情報の配列（複数のProjectに属している可能性がある）
-  - `projectId`: Project ID
-  - `projectTitle`: Projectタイトル
-  - `projectNumber`: Project番号
-  - `projectUrl`: Project URL
-  - `fieldValues`: このIssueのProject内でのカスタムフィールド値の配列
-    - `field`: フィールド情報（ID、名前）
-    - `fieldName`: フィールド名（Status、Iteration、Start Date、End Date、Estimationなど）
-    - `value`: フィールド値（SingleSelectの場合は選択肢名、Textの場合はテキスト、Numberの場合は数値、Dateの場合は日時文字列）
-    - `iteration`: イテレーションフィールド値（Iterationフィールドの場合）
-    - `milestone`: マイルストーンフィールド値（Milestoneフィールドの場合）
-    - `users`: ユーザーフィールド値（Userフィールドの場合）
-
-### `issue-count`
-
-取得したIssueの総数
-
-> **注意**: Projectデータは、Issueデータに統合されており、`issues.json`内の各Issueの`projects`フィールドから取得できます。独立した`projects.json`ファイルは生成されません。
+**オプション** `true` に設定すると、生データの出力や詳細ログ（整形済み JSON のダンプなど）を有効にします。デフォルトは `false` です。
 
 ## 使用例
 
@@ -95,12 +60,6 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           project-scope: "user"
-        
-      - name: Display Metrics
-        run: |
-          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
-          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
-          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
         
       # デフォルトではGITHUB_WORKSPACEにissues.jsonが自動生成されます（Project情報も統合されています）
       - name: List Generated Files
@@ -126,12 +85,6 @@ jobs:
           project-scope: "user"
           output-path: "metrics/reports"  # カスタム出力先
       
-      - name: Display Metrics
-        run: |
-          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
-          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
-          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
-      
       # metrics/reports ディレクトリにissues.jsonが生成されます（Project情報も統合されています）
       - name: List Generated Files
         run: |
@@ -155,10 +108,66 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           project-scope: "organization"
           organization-name: "my-organization"
-        
-      - name: Display Metrics
-        run: |
-          echo "Total issues: ${{ steps.get-metrics.outputs.issue-count }}"
-          echo "Total projects: ${{ steps.get-metrics.outputs.project-count }}"
-          echo "Total tasks: ${{ steps.get-metrics.outputs.total-tasks }}"
 ```
+
+## 生成される JSON データの構造
+
+アクション実行後は `output-path`（未指定時はリポジトリルート）に `issues.json` と `statistics.json` が生成されます。以下は主なフィールド構成です。
+
+### `issues.json`
+
+配列要素（各 Issue）は以下のフィールドを含みます。
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `number` | number | Issue 番号 |
+| `title` | string | Issue タイトル |
+| `state` | `"open"` / `"closed"` | 状態 |
+| `created_at`, `updated_at`, `closed_at` | string | 各日時 (ISO8601) |
+| `user` | object or null | 作成者情報（`login`, `id`） |
+| `assignees` | object[] | アサイン情報（`login`, `id`） |
+| `labels` | object[] | ラベル（`name`, `color`） |
+| `milestone` | object or null | マイルストーン（`title`, `state`） |
+| `comments` | number | コメント数 |
+| `body` | string or null | 本文 |
+| `pull_request` | boolean | PR であれば `true` |
+| `draft` | boolean | PR がドラフトなら `true` |
+| `events` | object[] | Issue イベント。代表的なフィールド: `id`, `event`, `created_at`, `actor`, `assignee`, `label`, `milestone`, `rename`, `requested_reviewer`, `requested_team`, `commit_id`, `commit_url` など |
+| `projects` | object[] | Project 情報（下表参照） |
+
+**`projects` 内部の構造**
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `projectId` | string | Project ID |
+| `projectTitle` | string | Project タイトル |
+| `projectNumber` | number | Project 番号 |
+| `projectUrl` | string | Project URL |
+| `fieldValues` | object[] | カスタムフィールド値（下表参照） |
+
+**`fieldValues` 内部の構造**
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `field` | object | GitHub API が返すフィールドメタ情報（ID 等） |
+| `fieldName` | string | フィールド名（例: `Status`, `Iteration`, `Start Date` など） |
+| `value` | string \| number \| null | 基本値（SingleSelect/ Text/ Number/ Date などに対応） |
+| `iteration` | object or null | イテレーション値（`iterationId`, `title`, `startDate`, `duration`） |
+| `milestone` | object or null | Milestone 値（`id`, `title`, `description`, `dueOn`） |
+| `users` | object[] or null | User 値（`id`, `login` の配列） |
+
+### `statistics.json`
+
+`performStatisticalAnalysis` の結果が格納されます。主な構造は以下の通りです。
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `descriptive` | object | 記述統計量 |
+| `descriptive.leadTime` 等 | object | `count`, `mean`, `median`, `p90`, `std_dev` などの統計値 |
+| `anomalies` | object | 外れ値・異常検知の結果 |
+| `anomalies.iqrOutliers` / `anomalies.zScoreOutliers` | object[] | `index`, `value`, `isOutlier`, `zScore`, `severity` など |
+| `anomalies.patterns` | object[] | 異常パターン（`type`, `severity`, `metric`, `current`, `baseline`, `increase_pct` 等） |
+| `correlations` | object | 相関分析の結果 |
+| `correlations.topFactors` | object | 各メトリクスごとに相関要因を配列で保持（要素は `factor`, `correlation`, `absCorrelation`, `pValue`, `strength`, `rSquared` など） |
+
+`debug-json` を `true` にすると、整形済みデータの JSON がログにも出力され、詳細な調査が容易になります（大量ログになる点に注意してください）。

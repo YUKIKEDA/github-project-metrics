@@ -12,6 +12,7 @@ import { getAllProjects } from "./projects.js";
 export async function getAllIssues() {
   const token = core.getInput("github-token");
   const octokit = github.getOctokit(token);
+  const debugJson = core.getBooleanInput("debug-json");
   
   const { owner, repo } = github.context.repo;
   
@@ -240,16 +241,13 @@ export async function getAllIssues() {
       core.warning("Project情報なしでIssueデータを返します");
     }
     
-    // 出力として設定
-    core.setOutput("issues", JSON.stringify(formattedIssues));
-    core.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
-    core.setOutput("issue-count", allIssues.length.toString());
-    
     core.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
     
     // Issueデータのサマリーを表示
-    core.info("=== Issueデータ（整形済み） ===");
-    core.info(JSON.stringify(formattedIssues, null, 2));
+    if (debugJson) {
+      core.info("=== Issueデータ（整形済み） ===");
+      core.info(JSON.stringify(formattedIssues, null, 2));
+    }
     
     // Issueサマリー情報を表示
     const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
