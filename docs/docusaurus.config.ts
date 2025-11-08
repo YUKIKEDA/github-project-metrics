@@ -72,6 +72,19 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: false,
+        indexDocs: true,
+        indexBlog: true,
+        docsRouteBasePath: '/docs',
+        language: ['ja'],
+      },
+    ],
+  ],
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
