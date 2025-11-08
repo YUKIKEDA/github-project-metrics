@@ -92,11 +92,7 @@ const config: Config = {
           label: 'ドキュメント',
         },
         {to: '/blog', label: 'ブログ', position: 'left'},
-        {
-          href: 'https://github.com/YUKIKEDA/github-project-metrics',
-          label: 'GitHub',
-          position: 'right',
-        },
+        {to: '/dashboard', label: 'ダッシュボード', position: 'left'},
       ],
     },
     footer: {
@@ -112,6 +108,10 @@ const config: Config = {
             {
               label: 'ブログ',
               to: '/blog',
+            },
+            {
+              label: 'ダッシュボード',
+              to: '/dashboard',
             },
           ],
         },

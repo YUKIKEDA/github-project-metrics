@@ -4,7 +4,7 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
-import Dashboard from "@site/src/components/Dashboard";
+import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
 import styles from "./index.module.css";
 
@@ -24,6 +24,9 @@ function HomepageHeader() {
           >
             ドキュメントを読む
           </Link>
+          <Link className="button button--outline button--lg" to="/dashboard">
+            ダッシュボードを見る
+          </Link>
         </div>
       </div>
     </header>
@@ -33,13 +36,10 @@ function HomepageHeader() {
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout
-      title={`${siteConfig.title} ダッシュボード`}
-      description="GitHub Project Metrics の活動状況をダッシュボードで確認できます。"
-    >
+    <Layout title={siteConfig.title} description={siteConfig.tagline}>
       <HomepageHeader />
       <main>
-        <Dashboard />
+        <HomepageFeatures />
       </main>
     </Layout>
   );
