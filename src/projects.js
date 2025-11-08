@@ -13,6 +13,7 @@ export async function getAllProjects() {
   const token = core.getInput("github-token");
   const projectScope = core.getInput("project-scope");
   const organizationName = core.getInput("organization-name");
+  const debugJson = core.getBooleanInput("debug-json");
   const octokit = github.getOctokit(token);
   
   core.info(`Project取得スコープ: ${projectScope}`);
@@ -44,10 +45,6 @@ export async function getAllProjects() {
     
     if (allProjects.length === 0) {
       core.warning("Project（v2）が見つかりませんでした。");
-      core.setOutput("projects", JSON.stringify([]));
-      core.setOutput("raw-projects", JSON.stringify([]));
-      core.setOutput("project-count", "0");
-      core.setOutput("total-tasks", "0");
       return [];
     }
     
@@ -133,14 +130,8 @@ export async function getAllProjects() {
       totalItems: project.items.totalCount
     }));
     
-    // 出力として設定
-    core.setOutput("projects", JSON.stringify(formattedProjects));
-    core.setOutput("raw-projects", JSON.stringify(projects)); // 整形前の生データも出力
-    core.setOutput("project-count", projects.length.toString());
-    
     // 全プロジェクトのタスク数を計算
     const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
-    core.setOutput("total-tasks", totalTasks.toString());
     
     core.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
@@ -149,21 +140,23 @@ export async function getAllProjects() {
     core.info(`総プロジェクト数: ${projects.length}件`);
     core.info(`総タスク数: ${totalTasks}件`);
     
-    formattedProjects.forEach((project, index) => {
-      core.info(`\n--- Project ${index + 1}: ${project.title} ---`);
-      core.info(`ID: ${project.id}`);
-      core.info(`URL: ${project.url}`);
-      core.info(`タスク数: ${project.totalItems}件`);
-      core.info(`作成日: ${project.createdAt}`);
-      core.info(`更新日: ${project.updatedAt}`);
-      if (project.shortDescription) {
-        core.info(`説明: ${project.shortDescription}`);
-      }
-    });
-    
-    // ProjectデータのJSONを表示（詳細版）
-    core.info("\n=== Projectデータ（整形済み） ===");
-    core.info(JSON.stringify(formattedProjects, null, 2));
+    if (debugJson) {
+      formattedProjects.forEach((project, index) => {
+        core.info(`\n--- Project ${index + 1}: ${project.title} ---`);
+        core.info(`ID: ${project.id}`);
+        core.info(`URL: ${project.url}`);
+        core.info(`タスク数: ${project.totalItems}件`);
+        core.info(`作成日: ${project.createdAt}`);
+        core.info(`更新日: ${project.updatedAt}`);
+        if (project.shortDescription) {
+          core.info(`説明: ${project.shortDescription}`);
+        }
+      });
+      
+      // ProjectデータのJSONを表示（詳細版）
+      core.info("\n=== Projectデータ（整形済み） ===");
+      core.info(JSON.stringify(formattedProjects, null, 2));
+    }
     
     return formattedProjects;
     
