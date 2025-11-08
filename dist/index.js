@@ -31583,6 +31583,7 @@ async function getAllProjects() {
   const token = coreExports.getInput("github-token");
   const projectScope = coreExports.getInput("project-scope");
   const organizationName = coreExports.getInput("organization-name");
+  const debugJson = coreExports.getBooleanInput("debug-json");
   const octokit = githubExports.getOctokit(token);
   
   coreExports.info(`Project取得スコープ: ${projectScope}`);
@@ -31614,10 +31615,6 @@ async function getAllProjects() {
     
     if (allProjects.length === 0) {
       coreExports.warning("Project（v2）が見つかりませんでした。");
-      coreExports.setOutput("projects", JSON.stringify([]));
-      coreExports.setOutput("raw-projects", JSON.stringify([]));
-      coreExports.setOutput("project-count", "0");
-      coreExports.setOutput("total-tasks", "0");
       return [];
     }
     
@@ -31703,14 +31700,8 @@ async function getAllProjects() {
       totalItems: project.items.totalCount
     }));
     
-    // 出力として設定
-    coreExports.setOutput("projects", JSON.stringify(formattedProjects));
-    coreExports.setOutput("raw-projects", JSON.stringify(projects)); // 整形前の生データも出力
-    coreExports.setOutput("project-count", projects.length.toString());
-    
     // 全プロジェクトのタスク数を計算
     const totalTasks = formattedProjects.reduce((sum, project) => sum + project.totalItems, 0);
-    coreExports.setOutput("total-tasks", totalTasks.toString());
     
     coreExports.info(`Project取得が完了しました。総数: ${projects.length}件、総タスク数: ${totalTasks}件`);
     
@@ -31719,21 +31710,23 @@ async function getAllProjects() {
     coreExports.info(`総プロジェクト数: ${projects.length}件`);
     coreExports.info(`総タスク数: ${totalTasks}件`);
     
-    formattedProjects.forEach((project, index) => {
-      coreExports.info(`\n--- Project ${index + 1}: ${project.title} ---`);
-      coreExports.info(`ID: ${project.id}`);
-      coreExports.info(`URL: ${project.url}`);
-      coreExports.info(`タスク数: ${project.totalItems}件`);
-      coreExports.info(`作成日: ${project.createdAt}`);
-      coreExports.info(`更新日: ${project.updatedAt}`);
-      if (project.shortDescription) {
-        coreExports.info(`説明: ${project.shortDescription}`);
-      }
-    });
-    
-    // ProjectデータのJSONを表示（詳細版）
-    coreExports.info("\n=== Projectデータ（整形済み） ===");
-    coreExports.info(JSON.stringify(formattedProjects, null, 2));
+    if (debugJson) {
+      formattedProjects.forEach((project, index) => {
+        coreExports.info(`\n--- Project ${index + 1}: ${project.title} ---`);
+        coreExports.info(`ID: ${project.id}`);
+        coreExports.info(`URL: ${project.url}`);
+        coreExports.info(`タスク数: ${project.totalItems}件`);
+        coreExports.info(`作成日: ${project.createdAt}`);
+        coreExports.info(`更新日: ${project.updatedAt}`);
+        if (project.shortDescription) {
+          coreExports.info(`説明: ${project.shortDescription}`);
+        }
+      });
+      
+      // ProjectデータのJSONを表示（詳細版）
+      coreExports.info("\n=== Projectデータ（整形済み） ===");
+      coreExports.info(JSON.stringify(formattedProjects, null, 2));
+    }
     
     return formattedProjects;
     
@@ -31754,6 +31747,7 @@ async function getAllProjects() {
 async function getAllIssues() {
   const token = coreExports.getInput("github-token");
   const octokit = githubExports.getOctokit(token);
+  const debugJson = coreExports.getBooleanInput("debug-json");
   
   const { owner, repo } = githubExports.context.repo;
   
@@ -31982,16 +31976,13 @@ async function getAllIssues() {
       coreExports.warning("Project情報なしでIssueデータを返します");
     }
     
-    // 出力として設定
-    coreExports.setOutput("issues", JSON.stringify(formattedIssues));
-    coreExports.setOutput("raw-issues", JSON.stringify(allIssues)); // 整形前の生データも出力
-    coreExports.setOutput("issue-count", allIssues.length.toString());
-    
     coreExports.info(`Issue取得が完了しました。総数: ${allIssues.length}件`);
     
     // Issueデータのサマリーを表示
-    coreExports.info("=== Issueデータ（整形済み） ===");
-    coreExports.info(JSON.stringify(formattedIssues, null, 2));
+    if (debugJson) {
+      coreExports.info("=== Issueデータ（整形済み） ===");
+      coreExports.info(JSON.stringify(formattedIssues, null, 2));
+    }
     
     // Issueサマリー情報を表示
     const openIssues = formattedIssues.filter(issue => issue.state === 'open').length;
