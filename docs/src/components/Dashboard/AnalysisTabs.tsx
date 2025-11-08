@@ -17,6 +17,10 @@ import {
   generateSegmentData,
   formatNumber,
   filterIssuesByPeriod,
+  calculateLeadTime,
+  calculateCycleTime,
+  calculateReviewTime,
+  calculateComplexity,
 } from './utils';
 import styles from './styles.module.css';
 
@@ -298,8 +302,10 @@ interface CorrelationAnalysisProps {
   palette: any;
 }
 
-export function CorrelationAnalysis({ statistics, palette }: CorrelationAnalysisProps): ReactElement {
+export function CorrelationAnalysis({ issues, statistics, palette }: CorrelationAnalysisProps): ReactElement {
   const [chartType, setChartType] = useState<CorrelationChartType>('heatmap');
+  const [xAxisMetric, setXAxisMetric] = useState<MetricKey>('leadTime');
+  const [yAxisMetric, setYAxisMetric] = useState<MetricKey>('cycleTime');
 
   const correlationMatrix = useMemo(() => {
     if (!statistics) return [];
@@ -323,56 +329,218 @@ export function CorrelationAnalysis({ statistics, palette }: CorrelationAnalysis
     return matrix;
   }, [statistics]);
 
-  const chartOption = useMemo(() => {
-    const metrics = ['leadTime', 'cycleTime', 'reviewTime', 'complexity', 'comments', 'assignees'];
-    const labels = metrics.map(m => METRICS[m as MetricKey].label);
+  // 散布図用データ
+  const scatterData = useMemo(() => {
+    const xData: number[] = [];
+    const yData: number[] = [];
 
-    const data: any[] = [];
-    correlationMatrix.forEach((row, i) => {
-      row.forEach((val, j) => {
-        data.push([j, i, val.toFixed(2)]);
-      });
+    issues.forEach(issue => {
+      let xValue: number | null = null;
+      let yValue: number | null = null;
+
+      // X軸データ取得
+      switch (xAxisMetric) {
+        case 'leadTime':
+          xValue = calculateLeadTime(issue);
+          break;
+        case 'cycleTime':
+          xValue = calculateCycleTime(issue);
+          break;
+        case 'reviewTime':
+          xValue = calculateReviewTime(issue);
+          break;
+        case 'complexity':
+          xValue = calculateComplexity(issue);
+          break;
+        case 'comments':
+          xValue = issue.comments;
+          break;
+        case 'assignees':
+          xValue = issue.assignees.length;
+          break;
+      }
+
+      // Y軸データ取得
+      switch (yAxisMetric) {
+        case 'leadTime':
+          yValue = calculateLeadTime(issue);
+          break;
+        case 'cycleTime':
+          yValue = calculateCycleTime(issue);
+          break;
+        case 'reviewTime':
+          yValue = calculateReviewTime(issue);
+          break;
+        case 'complexity':
+          yValue = calculateComplexity(issue);
+          break;
+        case 'comments':
+          yValue = issue.comments;
+          break;
+        case 'assignees':
+          yValue = issue.assignees.length;
+          break;
+      }
+
+      if (xValue !== null && yValue !== null) {
+        xData.push(xValue);
+        yData.push(yValue);
+      }
     });
 
+    // 回帰線計算
+    const n = xData.length;
+    if (n === 0) return { scatter: [], regression: [] };
+
+    const sumX = xData.reduce((a, b) => a + b, 0);
+    const sumY = yData.reduce((a, b) => a + b, 0);
+    const sumXY = xData.reduce((sum, x, i) => sum + x * yData[i], 0);
+    const sumX2 = xData.reduce((sum, x) => sum + x * x, 0);
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+
+    const minX = Math.min(...xData);
+    const maxX = Math.max(...xData);
+
     return {
-      tooltip: {
-        position: 'top',
-        formatter: (params: any) => {
-          return `${labels[params.data[0]]} × ${labels[params.data[1]]}<br/>相関係数: ${params.data[2]}`;
-        },
-      },
-      grid: { left: 100, top: 80, right: 40, bottom: 60 },
-      xAxis: {
-        type: 'category',
-        data: labels,
-        axisLabel: { color: palette.text, rotate: 45 },
-      },
-      yAxis: {
-        type: 'category',
-        data: labels,
-        axisLabel: { color: palette.text },
-      },
-      visualMap: {
-        min: -1,
-        max: 1,
-        calculable: true,
-        orient: 'horizontal',
-        left: 'center',
-        top: 10,
-        textStyle: { color: palette.text },
-      },
-      series: [{
-        type: 'heatmap',
-        data,
-        label: { show: true, color: palette.text },
-      }],
+      scatter: xData.map((x, i) => [x, yData[i]]),
+      regression: [
+        [minX, slope * minX + intercept],
+        [maxX, slope * maxX + intercept],
+      ],
     };
-  }, [correlationMatrix, palette]);
+  }, [issues, xAxisMetric, yAxisMetric]);
+
+  const chartOption = useMemo(() => {
+    if (chartType === 'scatter') {
+      return {
+        color: palette.colors,
+        tooltip: {
+          trigger: 'item',
+          formatter: (params: any) => {
+            if (params.seriesName === '回帰線') return '';
+            return `${METRICS[xAxisMetric].label}: ${params.value[0].toFixed(2)}<br/>` +
+                   `${METRICS[yAxisMetric].label}: ${params.value[1].toFixed(2)}`;
+          },
+        },
+        visualMap: null, // ヒートマップのvisualMapを削除
+        grid: { left: 80, right: 40, top: 40, bottom: 60 },
+        xAxis: {
+          type: 'value',
+          name: METRICS[xAxisMetric].label,
+          axisLabel: { color: palette.text },
+          splitLine: { lineStyle: { color: palette.splitLine } },
+        },
+        yAxis: {
+          type: 'value',
+          name: METRICS[yAxisMetric].label,
+          axisLabel: { color: palette.text },
+          splitLine: { lineStyle: { color: palette.splitLine } },
+        },
+        series: [
+          {
+            name: 'データポイント',
+            type: 'scatter',
+            data: scatterData.scatter,
+            symbolSize: 8,
+          },
+          {
+            name: '回帰線',
+            type: 'line',
+            data: scatterData.regression,
+            lineStyle: { color: palette.colors[1], width: 2 },
+            symbol: 'none',
+            smooth: false,
+          },
+        ],
+      };
+    } else {
+      // ヒートマップ
+      const metrics = ['leadTime', 'cycleTime', 'reviewTime', 'complexity', 'comments', 'assignees'];
+      const labels = metrics.map(m => METRICS[m as MetricKey].label);
+
+      const data: any[] = [];
+      correlationMatrix.forEach((row, i) => {
+        row.forEach((val, j) => {
+          data.push([j, i, val.toFixed(2)]);
+        });
+      });
+
+      return {
+        tooltip: {
+          position: 'top',
+          formatter: (params: any) => {
+            return `${labels[params.data[0]]} × ${labels[params.data[1]]}<br/>相関係数: ${params.data[2]}`;
+          },
+        },
+        grid: { left: 100, top: 80, right: 40, bottom: 60 },
+        xAxis: {
+          type: 'category',
+          data: labels,
+          axisLabel: { color: palette.text, rotate: 45 },
+        },
+        yAxis: {
+          type: 'category',
+          data: labels,
+          axisLabel: { color: palette.text },
+        },
+        visualMap: {
+          min: -1,
+          max: 1,
+          calculable: true,
+          orient: 'horizontal',
+          left: 'center',
+          top: 10,
+          textStyle: { color: palette.text },
+        },
+        series: [{
+          type: 'heatmap',
+          data,
+          label: { show: true, color: palette.text },
+        }],
+      };
+    }
+  }, [chartType, correlationMatrix, scatterData, xAxisMetric, yAxisMetric, palette]);
 
   return (
     <div className={styles.analysisTab}>
+      <div className={styles.analysisControls}>
+        <div className={styles.controlGroup}>
+          <label>グラフ種類:</label>
+          <select value={chartType} onChange={e => setChartType(e.target.value as CorrelationChartType)}>
+            <option value="heatmap">ヒートマップ</option>
+            <option value="scatter">散布図</option>
+          </select>
+        </div>
+        {chartType === 'scatter' && (
+          <>
+            <div className={styles.controlGroup}>
+              <label>横軸:</label>
+              <select value={xAxisMetric} onChange={e => setXAxisMetric(e.target.value as MetricKey)}>
+                {Object.values(METRICS).map(m => (
+                  <option key={m.key} value={m.key}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.controlGroup}>
+              <label>縦軸:</label>
+              <select value={yAxisMetric} onChange={e => setYAxisMetric(e.target.value as MetricKey)}>
+                {Object.values(METRICS).map(m => (
+                  <option key={m.key} value={m.key}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+      </div>
+
       <div className={styles.chartArea}>
-        <ReactECharts option={chartOption} style={{ height: 500, width: '100%' }} />
+        <ReactECharts
+          option={chartOption}
+          notMerge={true}
+          style={{ height: 500, width: '100%' }}
+        />
       </div>
 
       <div className={styles.tableArea}>
@@ -402,10 +570,17 @@ export function CorrelationAnalysis({ statistics, palette }: CorrelationAnalysis
 
       <div className={styles.insightArea}>
         <h4>📊 分析結果</h4>
-        <p>
-          指標間の相関関係をヒートマップで表示しています。
-          色が濃いほど相関が強いことを示します。
-        </p>
+        {chartType === 'heatmap' ? (
+          <p>
+            指標間の相関関係をヒートマップで表示しています。
+            色が濃いほど相関が強いことを示します。
+          </p>
+        ) : (
+          <p>
+            {METRICS[xAxisMetric].label}と{METRICS[yAxisMetric].label}の関係を散布図で表示しています。
+            赤い線は回帰線（最小二乗法）を示します。
+          </p>
+        )}
       </div>
     </div>
   );
@@ -508,12 +683,159 @@ export function SegmentAnalysis({ issues, palette }: SegmentAnalysisProps): Reac
   );
 }
 
-export function RegressionAnalysis({ palette }: { palette: any }): ReactElement {
+interface RegressionAnalysisProps {
+  statistics: StatisticsData | null;
+  palette: any;
+}
+
+export function RegressionAnalysis({ statistics, palette }: RegressionAnalysisProps): ReactElement {
+  const [targetMetric, setTargetMetric] = useState<MetricKey>('leadTime');
+
+  const regressionData = useMemo(() => {
+    if (!statistics?.correlations.topFactors[targetMetric]) {
+      return [];
+    }
+    return statistics.correlations.topFactors[targetMetric];
+  }, [statistics, targetMetric]);
+
+  const chartOption = useMemo(() => {
+    if (regressionData.length === 0) {
+      return null;
+    }
+
+    return {
+      color: palette.colors,
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+      },
+      grid: { left: 120, right: 40, top: 40, bottom: 60 },
+      xAxis: {
+        type: 'value',
+        name: '相関係数',
+        min: -1,
+        max: 1,
+        axisLabel: { color: palette.text },
+        splitLine: { lineStyle: { color: palette.splitLine } },
+      },
+      yAxis: {
+        type: 'category',
+        data: regressionData.map(d => METRICS[d.factor as MetricKey]?.label || d.factor),
+        axisLabel: { color: palette.text },
+      },
+      series: [
+        {
+          type: 'bar',
+          data: regressionData.map(d => ({
+            value: d.correlation,
+            itemStyle: {
+              color: d.correlation > 0 ? palette.colors[0] : palette.colors[1],
+            },
+          })),
+          label: {
+            show: true,
+            position: 'right',
+            formatter: (params: any) => params.value.toFixed(3),
+            color: palette.text,
+          },
+        },
+      ],
+    };
+  }, [regressionData, palette]);
+
+  const strongFactors = useMemo(() => {
+    return regressionData.filter(d => d.strength === 'strong');
+  }, [regressionData]);
+
+  const moderateFactors = useMemo(() => {
+    return regressionData.filter(d => d.strength === 'moderate');
+  }, [regressionData]);
+
   return (
     <div className={styles.analysisTab}>
+      <div className={styles.analysisControls}>
+        <div className={styles.controlGroup}>
+          <label>目的変数:</label>
+          <select value={targetMetric} onChange={e => setTargetMetric(e.target.value as MetricKey)}>
+            {Object.values(METRICS).map(m => (
+              <option key={m.key} value={m.key}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {chartOption && (
+        <div className={styles.chartArea}>
+          <ReactECharts option={chartOption} style={{ height: 400, width: '100%' }} />
+        </div>
+      )}
+
+      {regressionData.length > 0 && (
+        <div className={styles.tableArea}>
+          <table className={styles.dataTable}>
+            <thead>
+              <tr>
+                <th>説明変数</th>
+                <th>相関係数</th>
+                <th>決定係数 (R²)</th>
+                <th>p値</th>
+                <th>強度</th>
+              </tr>
+            </thead>
+            <tbody>
+              {regressionData.map((factor, idx) => (
+                <tr key={idx}>
+                  <td>{METRICS[factor.factor as MetricKey]?.label || factor.factor}</td>
+                  <td>{factor.correlation.toFixed(4)}</td>
+                  <td>{factor.rSquared.toFixed(4)}</td>
+                  <td>{factor.pValue < 0.001 ? '< 0.001' : factor.pValue.toFixed(4)}</td>
+                  <td>
+                    {factor.strength === 'strong' && '強い'}
+                    {factor.strength === 'moderate' && '中程度'}
+                    {factor.strength === 'weak' && '弱い'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <div className={styles.insightArea}>
-        <h4>🚧 準備中</h4>
-        <p>重回帰分析機能は現在開発中です。</p>
+        <h4>📈 分析結果</h4>
+        {regressionData.length === 0 ? (
+          <p>{METRICS[targetMetric].label}に対する有意な相関要因が見つかりませんでした。</p>
+        ) : (
+          <div>
+            <p>
+              {METRICS[targetMetric].label}に影響を与える要因を相関分析で特定しました。
+            </p>
+            {strongFactors.length > 0 && (
+              <p>
+                <strong>強い相関:</strong>{' '}
+                {strongFactors.map((f, i) => (
+                  <span key={i}>
+                    {METRICS[f.factor as MetricKey]?.label || f.factor}
+                    (r={f.correlation.toFixed(3)}, R²={f.rSquared.toFixed(3)})
+                    {i < strongFactors.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </p>
+            )}
+            {moderateFactors.length > 0 && (
+              <p>
+                <strong>中程度の相関:</strong>{' '}
+                {moderateFactors.map((f, i) => (
+                  <span key={i}>
+                    {METRICS[f.factor as MetricKey]?.label || f.factor}
+                    (r={f.correlation.toFixed(3)}, R²={f.rSquared.toFixed(3)})
+                    {i < moderateFactors.length - 1 ? ', ' : ''}
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

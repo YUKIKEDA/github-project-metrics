@@ -66,7 +66,7 @@ export const PERIOD_OPTIONS: Record<PeriodOption, { label: string; days: number 
 /**
  * リードタイムを計算（日数）
  */
-function calculateLeadTime(issue: Issue): number | null {
+export function calculateLeadTime(issue: Issue): number | null {
   if (!issue.closed_at) return null;
   const created = new Date(issue.created_at);
   const closed = new Date(issue.closed_at);
@@ -77,7 +77,7 @@ function calculateLeadTime(issue: Issue): number | null {
  * サイクルタイムを計算（日数）
  * ※簡易版：最初のassignedイベントからクローズまで
  */
-function calculateCycleTime(issue: Issue): number | null {
+export function calculateCycleTime(issue: Issue): number | null {
   if (!issue.closed_at) return null;
 
   const assignedEvent = issue.events.find(e => e.event === 'assigned');
@@ -95,7 +95,7 @@ function calculateCycleTime(issue: Issue): number | null {
  * レビュー時間を計算（PRの場合）
  * ※簡易版：PR作成からクローズまで
  */
-function calculateReviewTime(issue: Issue): number | null {
+export function calculateReviewTime(issue: Issue): number | null {
   if (!issue.pull_request || !issue.closed_at) return null;
   return calculateLeadTime(issue);
 }
@@ -103,7 +103,7 @@ function calculateReviewTime(issue: Issue): number | null {
 /**
  * 複雑度を計算（イベント数やコメント数から推定）
  */
-function calculateComplexity(issue: Issue): number {
+export function calculateComplexity(issue: Issue): number {
   // 簡易版：ラベル数 + コメント数 + イベント数/10
   return issue.labels.length + issue.comments + Math.floor(issue.events.length / 10);
 }
