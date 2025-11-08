@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'GitHub Project Metrics',
-  tagline: 'Track and visualize repository insights',
+  tagline: 'GitHubリポジトリの活動量を可視化し、チームの状況把握をスピーディーに',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future

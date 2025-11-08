@@ -1,0 +1,62 @@
+{
+  "summary": {
+    "period": "2024-Q3",
+    "totalCommits": 482,
+    "totalIssues": 76,
+    "totalPullRequests": 58,
+    "activeContributors": 14
+  },
+  "monthlyVelocity": [
+    {
+      "month": "2024-04",
+      "commits": 68,
+      "pullRequests": 9,
+      "issuesClosed": 12
+    },
+    {
+      "month": "2024-05",
+      "commits": 72,
+      "pullRequests": 11,
+      "issuesClosed": 15
+    },
+    {
+      "month": "2024-06",
+      "commits": 79,
+      "pullRequests": 10,
+      "issuesClosed": 13
+    },
+    {
+      "month": "2024-07",
+      "commits": 81,
+      "pullRequests": 12,
+      "issuesClosed": 14
+    },
+    {
+      "month": "2024-08",
+      "commits": 92,
+      "pullRequests": 9,
+      "issuesClosed": 12
+    },
+    { "month": "2024-09", "commits": 90, "pullRequests": 7, "issuesClosed": 10 }
+  ],
+  "issueTypes": [
+    { "type": "bug", "count": 28 },
+    { "type": "enhancement", "count": 31 },
+    { "type": "documentation", "count": 11 },
+    { "type": "question", "count": 6 }
+  ],
+  "languageBreakdown": [
+    { "language": "TypeScript", "percentage": 42 },
+    { "language": "JavaScript", "percentage": 27 },
+    { "language": "Python", "percentage": 18 },
+    { "language": "Shell", "percentage": 6 },
+    { "language": "Other", "percentage": 7 }
+  ],
+  "topContributors": [
+    { "name": "alice", "commits": 124 },
+    { "name": "bob", "commits": 87 },
+    { "name": "carol", "commits": 69 },
+    { "name": "dave", "commits": 53 },
+    { "name": "eve", "commits": 46 }
+  ]
+}
