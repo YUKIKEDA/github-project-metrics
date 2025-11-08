@@ -1,0 +1,240 @@
+{
+  "descriptive": {
+    "leadTime": {
+      "count": 25,
+      "mean": 0.7076407407407408,
+      "median": 0.0012731481481481483,
+      "mode": 0.0008796296296296296,
+      "std_dev": 2.3476508257546516,
+      "variance": 5.5114643996664965,
+      "min": 0.00005787037037037037,
+      "max": 11.851516203703703,
+      "q1": 0.000787037037037037,
+      "q3": 0.028993055555555557,
+      "p90": 1.676462962962963,
+      "p95": 1.9772546296296285,
+      "iqr": 0.02820601851851852,
+      "cv": 3.3175744280878865,
+      "skewness": 4.834358668883533,
+      "kurtosis": 23.776729850887982
+    },
+    "cycleTime": {
+      "count": 25,
+      "mean": 0.7046037037037037,
+      "median": 0.0007638888888888889,
+      "mode": 0.0007060185185185185,
+      "std_dev": 2.3485535446829386,
+      "variance": 5.515703752242796,
+      "min": -0.03575231481481481,
+      "max": 11.851516203703703,
+      "q1": 0.0005555555555555556,
+      "q3": 0.028912037037037038,
+      "p90": 1.6763310185185185,
+      "p95": 1.97717361111111,
+      "iqr": 0.028356481481481483,
+      "cv": 3.333155264921145,
+      "skewness": 4.8327786680716205,
+      "kurtosis": 23.76466266924966
+    },
+    "reviewTime": {
+      "count": 25,
+      "mean": 0.00034629629629629626,
+      "median": 0,
+      "mode": 0,
+      "std_dev": 0.0004818143436308171,
+      "variance": 2.321450617283951e-7,
+      "min": 0,
+      "max": 0.0016203703703703703,
+      "q1": 0,
+      "q3": 0.000787037037037037,
+      "p90": 0.0009837962962962964,
+      "p95": 0.0010717592592592593,
+      "iqr": 0.000787037037037037,
+      "cv": 1.39133553775744,
+      "skewness": 1.128887670147864,
+      "kurtosis": 0.25001741433497937
+    },
+    "complexity": {
+      "count": 25,
+      "mean": 0.8,
+      "median": 0,
+      "mode": 0,
+      "std_dev": 2.7129319932501046,
+      "variance": 7.359999999999986,
+      "min": 0,
+      "max": 10,
+      "q1": 0,
+      "q3": 0,
+      "p90": 0,
+      "p95": 7.999999999999972,
+      "iqr": 0,
+      "cv": 3.3911649915626305,
+      "skewness": 3.5057530335743254,
+      "kurtosis": 10.75148579366449
+    },
+    "comments": {
+      "count": 25,
+      "mean": 0,
+      "median": 0,
+      "mode": 0,
+      "std_dev": 0,
+      "variance": 0,
+      "min": 0,
+      "max": 0,
+      "q1": 0,
+      "q3": 0,
+      "p90": 0,
+      "p95": 0,
+      "iqr": 0,
+      "cv": 0,
+      "skewness": 0,
+      "kurtosis": 0
+    },
+    "assignees": {
+      "count": 25,
+      "mean": 1,
+      "median": 1,
+      "mode": 1,
+      "std_dev": 0,
+      "variance": 0,
+      "min": 1,
+      "max": 1,
+      "q1": 1,
+      "q3": 1,
+      "p90": 1,
+      "p95": 1,
+      "iqr": 0,
+      "cv": 0,
+      "skewness": 0,
+      "kurtosis": 0
+    }
+  },
+  "anomalies": {
+    "iqrOutliers": [
+      {
+        "index": 2,
+        "value": 11.851516203703703,
+        "isOutlier": true,
+        "zScore": 4.746819816946486,
+        "severity": "critical"
+      },
+      {
+        "index": 18,
+        "value": 1.6248032407407407,
+        "isOutlier": true,
+        "zScore": 0.39067245006726176,
+        "severity": "low"
+      },
+      {
+        "index": 20,
+        "value": 1.7109027777777779,
+        "isOutlier": true,
+        "zScore": 0.4273472128098687,
+        "severity": "low"
+      },
+      {
+        "index": 22,
+        "value": 0.3125,
+        "isOutlier": true,
+        "zScore": -0.16831325016731266,
+        "severity": "low"
+      },
+      {
+        "index": 24,
+        "value": 2.0438425925925925,
+        "isOutlier": true,
+        "zScore": 0.5691654982049258,
+        "severity": "low"
+      }
+    ],
+    "zScoreOutliers": [
+      {
+        "index": 2,
+        "value": 11.851516203703703,
+        "zScore": 4.746819816946486,
+        "isOutlier": true,
+        "severity": "critical"
+      }
+    ],
+    "patterns": [
+      {
+        "type": "lead_time_spike",
+        "severity": "critical",
+        "metric": "lead_time_p90",
+        "current": 1.6936828703703704,
+        "baseline": 0.017684027777777778,
+        "increase_pct": 9477.472347666731,
+        "message": "リードタイムP90が過去平均の9577%に増加（1.69日 → 0.02日）"
+      },
+      {
+        "type": "inconsistent_velocity",
+        "severity": "medium",
+        "metric": "cycle_time_variability",
+        "current": 1.6791628474794527,
+        "cv": 1.6791628474794527,
+        "message": "変動係数が1を超過（1.68）。予測可能性が低下しています"
+      }
+    ]
+  },
+  "correlations": {
+    "topFactors": {
+      "leadTime": [
+        {
+          "factor": "cycleTime",
+          "correlation": 0.9999947057964825,
+          "absCorrelation": 0.9999947057964825,
+          "pValue": 0,
+          "strength": "strong",
+          "rSquared": 0.9999894116209936
+        },
+        {
+          "factor": "complexity",
+          "correlation": 0.6554413364952115,
+          "absCorrelation": 0.6554413364952115,
+          "pValue": 0.00003155642743402076,
+          "strength": "moderate",
+          "rSquared": 0.4296033455866291
+        }
+      ],
+      "cycleTime": [
+        {
+          "factor": "leadTime",
+          "correlation": 0.9999947057964825,
+          "absCorrelation": 0.9999947057964825,
+          "pValue": 0,
+          "strength": "strong",
+          "rSquared": 0.9999894116209936
+        },
+        {
+          "factor": "complexity",
+          "correlation": 0.6555707327626132,
+          "absCorrelation": 0.6555707327626132,
+          "pValue": 0.00003135789651653731,
+          "strength": "moderate",
+          "rSquared": 0.4297729856549097
+        }
+      ],
+      "reviewTime": [],
+      "complexity": [
+        {
+          "factor": "cycleTime",
+          "correlation": 0.6555707327626132,
+          "absCorrelation": 0.6555707327626132,
+          "pValue": 0.00003135789651653731,
+          "strength": "moderate",
+          "rSquared": 0.4297729856549097
+        },
+        {
+          "factor": "leadTime",
+          "correlation": 0.6554413364952115,
+          "absCorrelation": 0.6554413364952115,
+          "pValue": 0.00003155642743402076,
+          "strength": "moderate",
+          "rSquared": 0.4296033455866291
+        }
+      ],
+      "comments": [],
+      "assignees": []
+    }
+  }
+}
