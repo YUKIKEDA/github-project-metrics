@@ -21,6 +21,9 @@ import {
   calculateCycleTime,
   calculateReviewTime,
   calculateComplexity,
+  performMultipleRegression,
+  extractMetricValues,
+  type MultipleRegressionResult,
 } from './utils';
 import styles from './styles.module.css';
 
@@ -684,24 +687,68 @@ export function SegmentAnalysis({ issues, palette }: SegmentAnalysisProps): Reac
 }
 
 interface RegressionAnalysisProps {
+  issues: Issue[];
   statistics: StatisticsData | null;
   palette: any;
 }
 
-export function RegressionAnalysis({ statistics, palette }: RegressionAnalysisProps): ReactElement {
+export function RegressionAnalysis({ issues, statistics, palette }: RegressionAnalysisProps): ReactElement {
   const [targetMetric, setTargetMetric] = useState<MetricKey>('leadTime');
 
-  const regressionData = useMemo(() => {
-    if (!statistics?.correlations.topFactors[targetMetric]) {
-      return [];
-    }
-    return statistics.correlations.topFactors[targetMetric];
-  }, [statistics, targetMetric]);
+  // 説明変数（目的変数以外の全指標、ただしreviewTimeは除外）
+  const explanatoryMetrics = useMemo(() => {
+    // reviewTimeはPR特有の指標なので重回帰分析からは除外
+    const allMetrics: MetricKey[] = ['leadTime', 'cycleTime', 'complexity', 'comments', 'assignees'];
 
-  const chartOption = useMemo(() => {
-    if (regressionData.length === 0) {
-      return null;
+    // 多重共線性を回避するため、強い相関がある変数ペアを除外
+    // leadTimeとcycleTimeは強い相関があるため、一方が目的変数の場合は他方を除外
+    const excludedMetrics = [targetMetric];
+    if (targetMetric === 'leadTime') {
+      excludedMetrics.push('cycleTime'); // leadTimeが目的変数の場合、cycleTimeを除外
+    } else if (targetMetric === 'cycleTime') {
+      excludedMetrics.push('leadTime'); // cycleTimeが目的変数の場合、leadTimeを除外
     }
+
+    return allMetrics.filter(m => !excludedMetrics.includes(m));
+  }, [targetMetric]);
+
+  // データ診断情報
+  const dataDiagnostics = useMemo(() => {
+    // 完了済みissue（closed_atがあるissue）をカウント
+    const closedIssues = issues.filter(issue => issue.closed_at !== null);
+    const openIssues = issues.filter(issue => issue.closed_at === null);
+
+    const { data } = extractMetricValues(issues);
+    const requiredSamples = explanatoryMetrics.length + 2;
+
+    return {
+      totalIssues: issues.length,
+      openIssues: openIssues.length,
+      closedIssues: closedIssues.length,
+      validSamples: data.length,
+      requiredSamples,
+    };
+  }, [issues, explanatoryMetrics]);
+
+  // 重回帰分析を実行
+  const regressionResult = useMemo(() => {
+    const result = performMultipleRegression(issues, targetMetric, explanatoryMetrics);
+    if (!result) {
+      console.log('重回帰分析が実行できませんでした', {
+        targetMetric,
+        explanatoryMetrics,
+        validSamples: dataDiagnostics.validSamples,
+      });
+    }
+    return result;
+  }, [issues, targetMetric, explanatoryMetrics, dataDiagnostics]);
+
+  // 係数棒グラフのオプション
+  const coefficientChartOption = useMemo(() => {
+    if (!regressionResult) return null;
+
+    // 切片以外の係数を取得
+    const coeffs = regressionResult.coefficients.filter(c => c.variable !== 'intercept');
 
     return {
       color: palette.colors,
@@ -712,44 +759,71 @@ export function RegressionAnalysis({ statistics, palette }: RegressionAnalysisPr
       grid: { left: 120, right: 40, top: 40, bottom: 60 },
       xAxis: {
         type: 'value',
-        name: '相関係数',
-        min: -1,
-        max: 1,
+        name: '回帰係数',
         axisLabel: { color: palette.text },
         splitLine: { lineStyle: { color: palette.splitLine } },
       },
       yAxis: {
         type: 'category',
-        data: regressionData.map(d => METRICS[d.factor as MetricKey]?.label || d.factor),
+        data: coeffs.map(c => METRICS[c.variable as MetricKey].label),
         axisLabel: { color: palette.text },
       },
       series: [
         {
           type: 'bar',
-          data: regressionData.map(d => ({
-            value: d.correlation,
+          data: coeffs.map(c => ({
+            value: c.coefficient,
             itemStyle: {
-              color: d.correlation > 0 ? palette.colors[0] : palette.colors[1],
+              color: c.coefficient > 0 ? palette.colors[0] : palette.colors[1],
             },
           })),
           label: {
             show: true,
             position: 'right',
-            formatter: (params: any) => params.value.toFixed(3),
+            formatter: (params: any) => params.value.toFixed(4),
             color: palette.text,
           },
         },
       ],
     };
-  }, [regressionData, palette]);
+  }, [regressionResult, palette]);
 
-  const strongFactors = useMemo(() => {
-    return regressionData.filter(d => d.strength === 'strong');
-  }, [regressionData]);
+  // 寄与率チャート（標準化係数）のオプション
+  const contributionChartOption = useMemo(() => {
+    if (!regressionResult) return null;
 
-  const moderateFactors = useMemo(() => {
-    return regressionData.filter(d => d.strength === 'moderate');
-  }, [regressionData]);
+    // 切片以外の係数を取得
+    const coeffs = regressionResult.coefficients.filter(c => c.variable !== 'intercept');
+
+    // 絶対値の合計で正規化して寄与率を計算
+    const total = coeffs.reduce((sum, c) => sum + Math.abs(c.coefficient), 0);
+    const contributions = coeffs.map(c => ({
+      variable: c.variable,
+      value: total > 0 ? (Math.abs(c.coefficient) / total) * 100 : 0,
+    }));
+
+    return {
+      color: palette.colors,
+      tooltip: {
+        trigger: 'item',
+        formatter: (params: any) => `${params.name}: ${params.value.toFixed(2)}%`,
+      },
+      series: [
+        {
+          type: 'pie',
+          radius: ['40%', '70%'],
+          label: {
+            color: palette.text,
+            formatter: (params: any) => `${params.name}\n${params.value.toFixed(1)}%`,
+          },
+          data: contributions.map(c => ({
+            name: METRICS[c.variable as MetricKey].label,
+            value: c.value,
+          })),
+        },
+      ],
+    };
+  }, [regressionResult, palette]);
 
   return (
     <div className={styles.analysisTab}>
@@ -757,86 +831,197 @@ export function RegressionAnalysis({ statistics, palette }: RegressionAnalysisPr
         <div className={styles.controlGroup}>
           <label>目的変数:</label>
           <select value={targetMetric} onChange={e => setTargetMetric(e.target.value as MetricKey)}>
-            {Object.values(METRICS).map(m => (
-              <option key={m.key} value={m.key}>{m.label}</option>
-            ))}
+            {Object.values(METRICS)
+              .filter(m => m.key !== 'reviewTime') // reviewTimeは除外
+              .map(m => (
+                <option key={m.key} value={m.key}>{m.label}</option>
+              ))}
           </select>
         </div>
       </div>
 
-      {chartOption && (
-        <div className={styles.chartArea}>
-          <ReactECharts option={chartOption} style={{ height: 400, width: '100%' }} />
-        </div>
-      )}
+      {!regressionResult ? (
+        <div className={styles.insightArea}>
+          {dataDiagnostics.validSamples >= dataDiagnostics.requiredSamples ? (
+            <>
+              <h4>⚠️ 多重共線性エラー</h4>
+              <p>重回帰分析の計算に失敗しました。これは通常、説明変数間に強い相関がある場合に発生します。</p>
 
-      {regressionData.length > 0 && (
-        <div className={styles.tableArea}>
-          <table className={styles.dataTable}>
-            <thead>
-              <tr>
-                <th>説明変数</th>
-                <th>相関係数</th>
-                <th>決定係数 (R²)</th>
-                <th>p値</th>
-                <th>強度</th>
-              </tr>
-            </thead>
-            <tbody>
-              {regressionData.map((factor, idx) => (
-                <tr key={idx}>
-                  <td>{METRICS[factor.factor as MetricKey]?.label || factor.factor}</td>
-                  <td>{factor.correlation.toFixed(4)}</td>
-                  <td>{factor.rSquared.toFixed(4)}</td>
-                  <td>{factor.pValue < 0.001 ? '< 0.001' : factor.pValue.toFixed(4)}</td>
-                  <td>
-                    {factor.strength === 'strong' && '強い'}
-                    {factor.strength === 'moderate' && '中程度'}
-                    {factor.strength === 'weak' && '弱い'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div className={styles.insightArea}>
-        <h4>📈 分析結果</h4>
-        {regressionData.length === 0 ? (
-          <p>{METRICS[targetMetric].label}に対する有意な相関要因が見つかりませんでした。</p>
-        ) : (
-          <div>
-            <p>
-              {METRICS[targetMetric].label}に影響を与える要因を相関分析で特定しました。
-            </p>
-            {strongFactors.length > 0 && (
+              <h5 style={{ marginTop: '1rem' }}>問題の可能性</h5>
               <p>
-                <strong>強い相関:</strong>{' '}
-                {strongFactors.map((f, i) => (
-                  <span key={i}>
-                    {METRICS[f.factor as MetricKey]?.label || f.factor}
-                    (r={f.correlation.toFixed(3)}, R²={f.rSquared.toFixed(3)})
-                    {i < strongFactors.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
+                目的変数「{METRICS[targetMetric].label}」と説明変数「{explanatoryMetrics.map(m => METRICS[m].label).join('、')}」の間に
+                <strong>多重共線性</strong>（強い相関関係）が存在する可能性があります。
               </p>
+              <p>
+                <strong>注:</strong> リードタイムとサイクルタイムは多重共線性を回避するため、
+                一方が目的変数の場合は他方を自動的に説明変数から除外しています。
+              </p>
+
+              <h5 style={{ marginTop: '1rem' }}>データ状況</h5>
+              <ul>
+                <li><strong>分析に使用可能:</strong> {dataDiagnostics.validSamples}件</li>
+                <li><strong>必要なサンプル数:</strong> {dataDiagnostics.requiredSamples}件以上 ✓</li>
+              </ul>
+
+              <p style={{ marginTop: '1rem' }}>
+                <strong>対処方法:</strong> 別の指標を目的変数として選択してください。
+                コンソール（F12キー）で詳細なエラー情報を確認できます。
+              </p>
+            </>
+          ) : (
+            <>
+              <h4>⚠️ データ不足</h4>
+              <p>重回帰分析を実行するには、完了済みのissue/PRが不足しています。</p>
+
+              <h5 style={{ marginTop: '1rem' }}>データ状況</h5>
+              <ul>
+                <li><strong>総Issue/PR数:</strong> {dataDiagnostics.totalIssues}件</li>
+                <li><strong>　├ 完了済み:</strong> {dataDiagnostics.closedIssues}件</li>
+                <li><strong>　└ 未完了（分析対象外）:</strong> {dataDiagnostics.openIssues}件</li>
+              </ul>
+
+              <h5 style={{ marginTop: '1rem' }}>分析可能性</h5>
+              <ul>
+                <li><strong>分析に使用可能:</strong> {dataDiagnostics.validSamples}件</li>
+                <li><strong>必要なサンプル数:</strong> {dataDiagnostics.requiredSamples}件以上</li>
+                <li><strong>不足:</strong> {Math.max(0, dataDiagnostics.requiredSamples - dataDiagnostics.validSamples)}件</li>
+              </ul>
+
+              <p style={{ marginTop: '1rem' }}>
+                <strong>注意:</strong> 重回帰分析では、リードタイムとサイクルタイムが計算可能なissue/PRのみを使用します。
+                これらの指標は完了済み（closed_at が設定されている）issue/PRでのみ計算できます。
+              </p>
+              <p>
+                <strong>使用される説明変数:</strong> {explanatoryMetrics.map(m => METRICS[m].label).join('、')}
+              </p>
+              <p>
+                <small>
+                  注: レビュー時間はPR特有の指標のため除外されています。
+                  また、リードタイムとサイクルタイムは多重共線性を避けるため、
+                  一方が目的変数の場合は他方を説明変数から除外しています。
+                </small>
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* 説明変数が少ない場合の警告 */}
+          {regressionResult.usedExplanatoryMetrics.length === 1 && (
+            <div className={styles.insightArea} style={{ marginBottom: '1rem', background: 'rgba(251, 146, 60, 0.1)', border: '1px solid rgba(251, 146, 60, 0.3)' }}>
+              <h4>⚠️ 説明変数不足</h4>
+              <p>
+                現在、使用可能な説明変数は「{METRICS[regressionResult.usedExplanatoryMetrics[0]].label}」のみです。
+                これは重回帰分析ではなく<strong>単回帰分析</strong>になります。
+              </p>
+              <p>
+                <small>
+                  他の変数（コメント数、担当者数）は分散が0のため除外されました。
+                  より正確な分析を行うには、データの多様性が必要です。
+                </small>
+              </p>
+            </div>
+          )}
+
+          {/* 回帰係数と寄与率のグラフを横並びに */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+            {/* 回帰係数の棒グラフ */}
+            {coefficientChartOption && (
+              <div className={styles.chartArea}>
+                <h4 style={{ marginBottom: '1rem' }}>回帰係数</h4>
+                <ReactECharts option={coefficientChartOption} style={{ height: 300, width: '100%' }} />
+              </div>
             )}
-            {moderateFactors.length > 0 && (
-              <p>
-                <strong>中程度の相関:</strong>{' '}
-                {moderateFactors.map((f, i) => (
-                  <span key={i}>
-                    {METRICS[f.factor as MetricKey]?.label || f.factor}
-                    (r={f.correlation.toFixed(3)}, R²={f.rSquared.toFixed(3)})
-                    {i < moderateFactors.length - 1 ? ', ' : ''}
-                  </span>
-                ))}
-              </p>
+
+            {/* 寄与率チャート */}
+            {contributionChartOption && (
+              <div className={styles.chartArea}>
+                <h4 style={{ marginBottom: '1rem' }}>寄与率</h4>
+                <ReactECharts option={contributionChartOption} style={{ height: 300, width: '100%' }} />
+              </div>
             )}
           </div>
-        )}
-      </div>
+
+          {/* 係数表 */}
+          <div className={styles.tableArea}>
+            <table className={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th>変数</th>
+                  <th>係数</th>
+                  <th>標準誤差</th>
+                  <th>t値</th>
+                  <th>p値</th>
+                  <th>有意性</th>
+                </tr>
+              </thead>
+              <tbody>
+                {regressionResult.coefficients.map((coef, idx) => (
+                  <tr key={idx}>
+                    <td>{coef.variable === 'intercept' ? '切片' : METRICS[coef.variable as MetricKey].label}</td>
+                    <td>{coef.coefficient.toFixed(4)}</td>
+                    <td>{coef.standardError.toFixed(4)}</td>
+                    <td>{coef.tValue.toFixed(3)}</td>
+                    <td>{coef.pValue < 0.001 ? '< 0.001' : coef.pValue.toFixed(4)}</td>
+                    <td>
+                      {coef.pValue < 0.001 && '***'}
+                      {coef.pValue >= 0.001 && coef.pValue < 0.01 && '**'}
+                      {coef.pValue >= 0.01 && coef.pValue < 0.05 && '*'}
+                      {coef.pValue >= 0.05 && ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.insightArea}>
+            <h4>📈 分析結果</h4>
+            <p>
+              {METRICS[targetMetric].label}を目的変数とした重回帰分析の結果です。
+            </p>
+            <p>
+              <strong>サンプル数:</strong> {dataDiagnostics.validSamples}件（完了済みのissue/PR）
+            </p>
+            <p>
+              <strong>決定係数 (R²):</strong> {regressionResult.rSquared.toFixed(4)}
+              {' / '}
+              <strong>調整済みR²:</strong> {regressionResult.adjustedRSquared.toFixed(4)}
+            </p>
+            <p>
+              <strong>F統計量:</strong> {regressionResult.fStatistic.toFixed(3)}
+              {' / '}
+              <strong>p値:</strong> {regressionResult.fPValue < 0.001 ? '< 0.001' : regressionResult.fPValue.toFixed(4)}
+            </p>
+            <p>
+              <small>
+                有意性: *** p {'<'} 0.001, ** p {'<'} 0.01, * p {'<'} 0.05
+              </small>
+            </p>
+            <p>
+              <strong>使用した説明変数:</strong> {regressionResult.usedExplanatoryMetrics.map(m => METRICS[m].label).join('、')}
+            </p>
+            {regressionResult.usedExplanatoryMetrics.length < explanatoryMetrics.length && (
+              <p>
+                <small>
+                  注: 以下の変数は分散が0または極めて小さいため自動的に除外されました：
+                  {explanatoryMetrics
+                    .filter(m => !regressionResult.usedExplanatoryMetrics.includes(m))
+                    .map(m => METRICS[m].label)
+                    .join('、')}
+                </small>
+              </p>
+            )}
+            <p>
+              <small>
+                レビュー時間はPR特有の指標のため除外されています。
+                また、リードタイムとサイクルタイムは多重共線性を避けるため、
+                一方が目的変数の場合は他方を説明変数から除外しています。
+              </small>
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

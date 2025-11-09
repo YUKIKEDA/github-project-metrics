@@ -420,3 +420,275 @@ export function formatPercent(value: number): string {
   const sign = value >= 0 ? '+' : '';
   return `${sign}${value.toFixed(1)}%`;
 }
+
+/**
+ * 各issueから全指標の値を抽出
+ */
+export function extractMetricValues(issues: Issue[]): {
+  data: { [key in MetricKey]: number }[];
+  validIndices: number[];
+} {
+  const data: { [key in MetricKey]: number }[] = [];
+  const validIndices: number[] = [];
+
+  issues.forEach((issue, index) => {
+    const leadTime = calculateLeadTime(issue);
+    const cycleTime = calculateCycleTime(issue);
+    const reviewTime = calculateReviewTime(issue);
+    const complexity = calculateComplexity(issue);
+    const comments = issue.comments;
+    const assignees = issue.assignees.length;
+
+    // leadTimeとcycleTimeが計算できる（完了済み）issueのみ含める
+    // reviewTimeはPR特有なのでnullでも許容（0として扱う）
+    if (leadTime !== null && cycleTime !== null) {
+      data.push({
+        leadTime,
+        cycleTime,
+        reviewTime: reviewTime ?? 0, // reviewTimeがnullの場合は0
+        complexity,
+        comments,
+        assignees,
+      });
+      validIndices.push(index);
+    }
+  });
+
+  return { data, validIndices };
+}
+
+/**
+ * 重回帰分析の結果
+ */
+export interface MultipleRegressionResult {
+  coefficients: { variable: MetricKey | 'intercept'; coefficient: number; standardError: number; tValue: number; pValue: number }[];
+  rSquared: number;
+  adjustedRSquared: number;
+  fStatistic: number;
+  fPValue: number;
+  usedExplanatoryMetrics: MetricKey[]; // 実際に使用された説明変数
+}
+
+/**
+ * 重回帰分析を実行（最小二乗法）
+ */
+export function performMultipleRegression(
+  issues: Issue[],
+  targetMetric: MetricKey,
+  explanatoryMetrics: MetricKey[]
+): MultipleRegressionResult | null {
+  const { data } = extractMetricValues(issues);
+
+  console.log('重回帰分析デバッグ:', {
+    targetMetric,
+    explanatoryMetrics,
+    dataLength: data.length,
+    requiredSamples: explanatoryMetrics.length + 2,
+  });
+
+  if (data.length < explanatoryMetrics.length + 2) {
+    // サンプル数が少なすぎる
+    console.log('サンプル数不足');
+    return null;
+  }
+
+  // 分散が0または極めて小さい変数を除外
+  const filteredExplanatoryMetrics = explanatoryMetrics.filter(metric => {
+    const values = data.map(d => d[metric]);
+    const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+    const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
+
+    if (variance < 1e-10) {
+      console.warn(`変数 ${metric} は分散が0または極めて小さいため除外されました (分散: ${variance})`);
+      return false;
+    }
+    return true;
+  });
+
+  if (filteredExplanatoryMetrics.length === 0) {
+    console.error('使用可能な説明変数がありません（すべての変数の分散が0）');
+    return null;
+  }
+
+  console.log('使用する説明変数:', filteredExplanatoryMetrics);
+
+  // 目的変数ベクトル y
+  const y = data.map(d => d[targetMetric]);
+
+  // 説明変数行列 X (切片項を含む)
+  const X: number[][] = data.map(d => [
+    1, // 切片項
+    ...filteredExplanatoryMetrics.map(metric => d[metric]),
+  ]);
+
+  // 転置行列 X^T
+  const XT = transpose(X);
+
+  // X^T * X
+  const XTX = matrixMultiply(XT, X);
+
+  // (X^T * X)^-1
+  const XTXInv = matrixInverse(XTX);
+  if (!XTXInv) {
+    console.error('逆行列の計算に失敗しました（多重共線性の可能性）', {
+      XTX,
+      targetMetric,
+      filteredExplanatoryMetrics,
+    });
+    return null;
+  }
+
+  // X^T * y
+  const XTy = XT.map(row => row.reduce((sum, val, i) => sum + val * y[i], 0));
+
+  // β = (X^T * X)^-1 * X^T * y
+  const beta = XTXInv.map(row => row.reduce((sum, val, i) => sum + val * XTy[i], 0));
+
+  // 予測値
+  const yPred = X.map(row => row.reduce((sum, val, i) => sum + val * beta[i], 0));
+
+  // 残差
+  const residuals = y.map((val, i) => val - yPred[i]);
+
+  // SSE (Sum of Squared Errors)
+  const SSE = residuals.reduce((sum, r) => sum + r * r, 0);
+
+  // SST (Total Sum of Squares)
+  const yMean = y.reduce((sum, val) => sum + val, 0) / y.length;
+  const SST = y.reduce((sum, val) => sum + (val - yMean) ** 2, 0);
+
+  // R^2
+  const rSquared = 1 - SSE / SST;
+
+  // 調整済みR^2
+  const n = data.length;
+  const k = filteredExplanatoryMetrics.length;
+  const adjustedRSquared = 1 - ((1 - rSquared) * (n - 1)) / (n - k - 1);
+
+  // MSE (Mean Squared Error)
+  const MSE = SSE / (n - k - 1);
+
+  // 標準誤差
+  const standardErrors = XTXInv.map((row, i) => Math.sqrt(MSE * row[i]));
+
+  // t値とp値
+  const coefficients = beta.map((coef, i) => {
+    const tValue = coef / standardErrors[i];
+    const pValue = 2 * (1 - tDistributionCDF(Math.abs(tValue), n - k - 1));
+
+    return {
+      variable: i === 0 ? ('intercept' as const) : filteredExplanatoryMetrics[i - 1],
+      coefficient: coef,
+      standardError: standardErrors[i],
+      tValue,
+      pValue,
+    };
+  });
+
+  // F統計量
+  const MSR = (SST - SSE) / k;
+  const fStatistic = MSR / MSE;
+  const fPValue = 1 - fDistributionCDF(fStatistic, k, n - k - 1);
+
+  return {
+    coefficients,
+    rSquared,
+    adjustedRSquared,
+    fStatistic,
+    fPValue,
+    usedExplanatoryMetrics: filteredExplanatoryMetrics,
+  };
+}
+
+/**
+ * 行列の転置
+ */
+function transpose(matrix: number[][]): number[][] {
+  return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
+}
+
+/**
+ * 行列の積
+ */
+function matrixMultiply(a: number[][], b: number[][]): number[][] {
+  const result: number[][] = [];
+  for (let i = 0; i < a.length; i++) {
+    result[i] = [];
+    for (let j = 0; j < b[0].length; j++) {
+      let sum = 0;
+      for (let k = 0; k < a[0].length; k++) {
+        sum += a[i][k] * b[k][j];
+      }
+      result[i][j] = sum;
+    }
+  }
+  return result;
+}
+
+/**
+ * 行列の逆行列（ガウス・ジョルダン法）
+ */
+function matrixInverse(matrix: number[][]): number[][] | null {
+  const n = matrix.length;
+  const augmented = matrix.map((row, i) => [...row, ...Array(n).fill(0).map((_, j) => (i === j ? 1 : 0))]);
+
+  for (let i = 0; i < n; i++) {
+    // ピボット選択
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(augmented[k][i]) > Math.abs(augmented[maxRow][i])) {
+        maxRow = k;
+      }
+    }
+    [augmented[i], augmented[maxRow]] = [augmented[maxRow], augmented[i]];
+
+    if (Math.abs(augmented[i][i]) < 1e-10) {
+      return null; // 逆行列が存在しない
+    }
+
+    // 行の正規化
+    const pivot = augmented[i][i];
+    for (let j = 0; j < 2 * n; j++) {
+      augmented[i][j] /= pivot;
+    }
+
+    // 他の行から引く
+    for (let k = 0; k < n; k++) {
+      if (k !== i) {
+        const factor = augmented[k][i];
+        for (let j = 0; j < 2 * n; j++) {
+          augmented[k][j] -= factor * augmented[i][j];
+        }
+      }
+    }
+  }
+
+  return augmented.map(row => row.slice(n));
+}
+
+/**
+ * t分布の累積分布関数（近似）
+ */
+function tDistributionCDF(t: number, df: number): number {
+  // 簡易的な近似
+  const x = df / (df + t * t);
+  return 1 - 0.5 * incompleteBeta(x, df / 2, 0.5);
+}
+
+/**
+ * F分布の累積分布関数（近似）
+ */
+function fDistributionCDF(f: number, d1: number, d2: number): number {
+  const x = d2 / (d2 + d1 * f);
+  return 1 - incompleteBeta(x, d2 / 2, d1 / 2);
+}
+
+/**
+ * 不完全ベータ関数（簡易近似）
+ */
+function incompleteBeta(x: number, a: number, b: number): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  // 簡易的な近似（正確ではないが、p値の大まかな目安として使用）
+  return Math.pow(x, a) * Math.pow(1 - x, b) / (a + b);
+}

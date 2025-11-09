@@ -260,7 +260,7 @@ export default function ProductivityDashboard(): ReactElement {
               <SegmentAnalysis issues={filteredIssues} palette={palette} />
             )}
             {activeTab === "regression" && (
-              <RegressionAnalysis statistics={statistics} palette={palette} />
+              <RegressionAnalysis issues={filteredIssues} statistics={statistics} palette={palette} />
             )}
           </div>
         </div>
