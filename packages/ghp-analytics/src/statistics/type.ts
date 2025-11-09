@@ -53,8 +53,12 @@ export interface DistributionDetails {
  * 外れ値判定に関する情報。
  */
 export interface OutlierDetails {
+  iqr?: OutlierMethodResult;
+  zscore?: OutlierMethodResult;
+}
+
+export interface OutlierMethodResult {
   detectedCount: number;
-  method: 'iqr' | 'zscore' | 'both' | 'none';
   threshold?: {
     lower?: number;
     upper?: number;

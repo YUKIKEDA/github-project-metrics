@@ -10,12 +10,11 @@ import {
   zScore as ssZScore,
 } from 'simple-statistics';
 import type { IssueMetrics, IssueMetricsRecord, MetricResult } from '../metrics/type';
-import type { IssueMetricsStatistics, MetricStatisticsResult } from './type';
+import type { IssueMetricsStatistics, MetricStatisticsResult, OutlierMethodResult } from './type';
 
 type MetricKey = keyof IssueMetrics;
 
 export interface DescriptiveStatisticsOptions {
-  outlierMethod?: 'iqr' | 'zscore' | 'both' | 'none';
   zScoreThreshold?: number;
   iqrMultiplier?: number;
 }
@@ -30,7 +29,6 @@ const METRIC_KEYS: MetricKey[] = [
 ];
 
 const DEFAULT_OPTIONS: Required<DescriptiveStatisticsOptions> = {
-  outlierMethod: 'iqr',
   zScoreThreshold: 3,
   iqrMultiplier: 1.5,
 };
@@ -103,6 +101,11 @@ function computeMetricStatistics(
 ): MetricStatisticsResult {
   const count = values.length;
   if (count === 0) {
+    const outliers: MetricStatisticsResult['outliers'] = {
+      iqr: createEmptyOutlierResult(),
+      zscore: createEmptyOutlierResult({ zScore: options.zScoreThreshold }),
+    };
+
     return {
       summary: {
         count: 0,
@@ -117,10 +120,7 @@ function computeMetricStatistics(
         percentile75: null,
         percentile90: null,
       },
-      outliers: {
-        detectedCount: 0,
-        method: 'none',
-      },
+      outliers,
       samples: {
         values: [],
         missingCount,
@@ -307,6 +307,15 @@ function computePercentile(sortedValues: number[], percentile: number): number |
   return ssQuantileSorted(sortedValues, percentile / 100);
 }
 
+function createEmptyOutlierResult(
+  threshold?: OutlierMethodResult['threshold'],
+): OutlierMethodResult {
+  return {
+    detectedCount: 0,
+    ...(threshold ? { threshold } : {}),
+  };
+}
+
 /**
  * simple-statistics を用いて標本歪度を算出する。
  *
@@ -356,7 +365,7 @@ function computeKurtosis(
  *
  * @param values 対象値
  * @param context 外れ値検出に必要な統計情報とオプション
- * @returns 外れ値情報
+ * @returns IQR/Zスコアごとの外れ値情報
  */
 function detectOutliers(
   values: number[],
@@ -367,79 +376,21 @@ function detectOutliers(
     mean: number | null;
   },
 ): MetricStatisticsResult['outliers'] {
-  const { outlierMethod, iqrMultiplier, zScoreThreshold, percentile25, percentile75, standardDeviation, mean } =
-    context;
-
-  if (values.length === 0 || outlierMethod === 'none') {
-    return {
-      detectedCount: 0,
-      method: 'none',
-    };
-  }
+  const { iqrMultiplier, zScoreThreshold, percentile25, percentile75, standardDeviation, mean } = context;
 
   const iqrResult =
     percentile25 !== null && percentile75 !== null
       ? detectIqrOutliers(values, percentile25, percentile75, iqrMultiplier)
-      : null;
+      : createEmptyOutlierResult();
 
   const zscoreResult =
     mean !== null && standardDeviation !== null && standardDeviation !== 0
       ? detectZScoreOutliers(values, mean, standardDeviation, zScoreThreshold)
-      : null;
-
-  if (outlierMethod === 'iqr' || (outlierMethod === 'both' && !zscoreResult)) {
-    return iqrResult ?? {
-      detectedCount: 0,
-      method: 'iqr',
-      threshold: {
-        lower: percentile25 !== null ? percentile25 : undefined,
-        upper: percentile75 !== null ? percentile75 : undefined,
-      },
-    };
-  }
-
-  if (outlierMethod === 'zscore' || (outlierMethod === 'both' && !iqrResult)) {
-    return zscoreResult ?? {
-      detectedCount: 0,
-      method: 'zscore',
-      threshold: {
-        zScore: zScoreThreshold,
-      },
-    };
-  }
-
-  if (outlierMethod === 'both') {
-    const combinedIndices = new Set<number>();
-    let lower: number | undefined;
-    let upper: number | undefined;
-    let zScore: number | undefined;
-
-    if (iqrResult) {
-      iqrResult.indices?.forEach((index) => combinedIndices.add(index));
-      lower = iqrResult.threshold?.lower;
-      upper = iqrResult.threshold?.upper;
-    }
-
-    if (zscoreResult) {
-      zscoreResult.indices?.forEach((index) => combinedIndices.add(index));
-      zScore = zscoreResult.threshold?.zScore;
-    }
-
-    return {
-      detectedCount: combinedIndices.size,
-      method: 'both',
-      threshold: {
-        lower,
-        upper,
-        zScore,
-      },
-      indices: combinedIndices.size > 0 ? Array.from(combinedIndices).sort((a, b) => a - b) : undefined,
-    };
-  }
+      : createEmptyOutlierResult({ zScore: zScoreThreshold });
 
   return {
-    detectedCount: 0,
-    method: 'none',
+    iqr: iqrResult,
+    zscore: zscoreResult,
   };
 }
 
@@ -450,19 +401,18 @@ function detectOutliers(
  * @param q1 第1四分位数
  * @param q3 第3四分位数
  * @param multiplier IQR 係数
- * @returns IQR 判定の結果。判定不能時は null
+ * @returns IQR 判定の結果
  */
 function detectIqrOutliers(
   values: number[],
   q1: number,
   q3: number,
   multiplier: number,
-): MetricStatisticsResult['outliers'] | null {
+): OutlierMethodResult {
   const iqr = q3 - q1;
   if (iqr === 0) {
     return {
       detectedCount: 0,
-      method: 'iqr',
       threshold: {
         lower: q1,
         upper: q3,
@@ -482,7 +432,6 @@ function detectIqrOutliers(
 
   return {
     detectedCount: indices.length,
-    method: 'iqr',
     threshold: {
       lower: lowerBound,
       upper: upperBound,
@@ -498,18 +447,17 @@ function detectIqrOutliers(
  * @param mean 平均
  * @param standardDeviation 標準偏差
  * @param threshold 判定閾値
- * @returns Z スコア判定の結果。判定不能時は null
+ * @returns Z スコア判定の結果
  */
 function detectZScoreOutliers(
   values: number[],
   mean: number,
   standardDeviation: number,
   threshold: number,
-): MetricStatisticsResult['outliers'] | null {
+): OutlierMethodResult {
   if (standardDeviation === 0) {
     return {
       detectedCount: 0,
-      method: 'zscore',
       threshold: {
         zScore: threshold,
       },
@@ -526,7 +474,6 @@ function detectZScoreOutliers(
 
   return {
     detectedCount: indices.length,
-    method: 'zscore',
     threshold: {
       zScore: threshold,
     },
