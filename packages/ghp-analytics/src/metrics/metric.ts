@@ -29,6 +29,44 @@ export function computeMetricsForIssues(issues: Issues): Record<number, IssueMet
 }
 
 /**
+ * 指定した日付範囲に含まれる Issue のメトリクスのみを抽出する。
+ * @param metrics 抽出対象の Issue メトリクス集合（配列または辞書）
+ * @param startDate 範囲の開始日（ISO 8601 文字列）
+ * @param endDate 範囲の終了日（ISO 8601 文字列）
+ * @returns 条件に一致する Issue メトリクス配列
+ */
+export function filterMetricsByDateRange(
+  metrics: Record<number, IssueMetricsRecord> | IssueMetricsRecord[],
+  startDate?: string,
+  endDate?: string,
+): IssueMetricsRecord[] {
+  const collection = Array.isArray(metrics) ? metrics : Object.values(metrics);
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+
+  if (start && end && start > end) {
+    return [];
+  }
+
+  return collection.filter((record) => {
+    const createdAt = parseDate(record.issue.created_at);
+    if (!createdAt) {
+      return false;
+    }
+
+    if (start && createdAt < start) {
+      return false;
+    }
+
+    if (end && createdAt > end) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+/**
  * 単一 Issue の指標を算出する。
  * @param issue 対象の Issue レコード
  * @returns Issue のメタ情報と指標セット

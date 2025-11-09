@@ -9,10 +9,9 @@ import {
   quantileSorted as ssQuantileSorted,
   zScore as ssZScore,
 } from 'simple-statistics';
-import type { IssueMetrics, IssueMetricsRecord, MetricResult } from '../metrics/type';
-import type { IssueMetricsStatistics, MetricStatisticsResult, OutlierMethodResult } from './type';
+import type { IssueMetricsRecord, MetricResult } from '../metrics/type';
+import type { IssueMetricsStatistics, MetricKey, MetricStatisticsResult, OutlierMethodResult } from './type';
 
-type MetricKey = keyof IssueMetrics;
 
 export interface DescriptiveStatisticsOptions {
   zScoreThreshold?: number;
