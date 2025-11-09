@@ -51,8 +51,7 @@ export function computeIssueMetrics(issue: IssueRecord): IssueMetricsRecord {
   };
 
   return {
-    issueNumber: issue.number,
-    title: issue.title,
+    issue,
     metrics,
   };
 }

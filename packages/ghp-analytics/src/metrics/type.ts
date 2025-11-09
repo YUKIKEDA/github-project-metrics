@@ -1,9 +1,10 @@
+import { IssueRecord } from "../issues/type";
+
 /**
  * Issue メタ情報と算出済みメトリクスの集合。
  */
 export interface IssueMetricsRecord {
-  issueNumber: number;
-  title: string;
+  issue: IssueRecord;
   metrics: IssueMetrics;
 }
 
