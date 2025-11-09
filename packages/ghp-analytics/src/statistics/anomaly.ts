@@ -18,6 +18,11 @@ const DEFAULT_Z_SCORE_THRESHOLD = 2;
 const DEFAULT_RELATIVE_CHANGE_THRESHOLD = 0.3;
 const DEFAULT_BASELINE_MIN_COUNT = 5;
 const DEFAULT_RECENT_MIN_COUNT = 3;
+const DEFAULT_IQR_RELATIVE_CHANGE_THRESHOLD = 0.5;
+const DEFAULT_QUARTILE_SHIFT_THRESHOLD = 0.5;
+const DEFAULT_SKEWNESS_CHANGE_THRESHOLD = 1;
+const DEFAULT_KURTOSIS_CHANGE_THRESHOLD = 2;
+const DEFAULT_OUTLIER_COUNT_DIFF_THRESHOLD = 3;
 
 export interface AnomalyDetectionOptions {
   /** 直近期間の日数（例: 7 日間） */
@@ -38,6 +43,16 @@ export interface AnomalyDetectionOptions {
   minRecentSampleSize?: number;
   /** 記述統計量算出時のオプション。 */
   descriptiveOptions?: DescriptiveStatisticsOptions;
+  /** IQR に対する相対変化率のしきい値。 */
+  iqrRelativeChangeThreshold?: number;
+  /** 四分位点シフトを異常とみなす規模（ベースライン IQR に対する割合）。 */
+  quartileShiftThreshold?: number;
+  /** 歪度の変化量しきい値。 */
+  skewnessChangeThreshold?: number;
+  /** 尖度の変化量しきい値。 */
+  kurtosisChangeThreshold?: number;
+  /** 外れ値カウントの差分しきい値。 */
+  outlierCountDiffThreshold?: number;
 }
 
 /**
@@ -68,6 +83,11 @@ export function detectMetricAnomalies(
     relativeChangeThreshold: options.relativeChangeThreshold ?? DEFAULT_RELATIVE_CHANGE_THRESHOLD,
     minBaselineSampleSize: options.minBaselineSampleSize ?? DEFAULT_BASELINE_MIN_COUNT,
     minRecentSampleSize: options.minRecentSampleSize ?? DEFAULT_RECENT_MIN_COUNT,
+    iqrRelativeChangeThreshold: options.iqrRelativeChangeThreshold ?? DEFAULT_IQR_RELATIVE_CHANGE_THRESHOLD,
+    quartileShiftThreshold: options.quartileShiftThreshold ?? DEFAULT_QUARTILE_SHIFT_THRESHOLD,
+    skewnessChangeThreshold: options.skewnessChangeThreshold ?? DEFAULT_SKEWNESS_CHANGE_THRESHOLD,
+    kurtosisChangeThreshold: options.kurtosisChangeThreshold ?? DEFAULT_KURTOSIS_CHANGE_THRESHOLD,
+    outlierCountDiffThreshold: options.outlierCountDiffThreshold ?? DEFAULT_OUTLIER_COUNT_DIFF_THRESHOLD,
   });
 
   return {
@@ -95,6 +115,11 @@ function computeAnomalySummaries(
     relativeChangeThreshold: number;
     minBaselineSampleSize: number;
     minRecentSampleSize: number;
+    iqrRelativeChangeThreshold: number;
+    quartileShiftThreshold: number;
+    skewnessChangeThreshold: number;
+    kurtosisChangeThreshold: number;
+    outlierCountDiffThreshold: number;
   },
 ): Record<MetricKey, MetricAnomalySummary> {
   const result: Partial<Record<MetricKey, MetricAnomalySummary>> = {};
@@ -124,9 +149,24 @@ function analyseMetric(
     relativeChangeThreshold: number;
     minBaselineSampleSize: number;
     minRecentSampleSize: number;
+    iqrRelativeChangeThreshold: number;
+    quartileShiftThreshold: number;
+    skewnessChangeThreshold: number;
+    kurtosisChangeThreshold: number;
+    outlierCountDiffThreshold: number;
   },
 ): MetricAnomalySummary {
-  const { zScoreThreshold, relativeChangeThreshold, minBaselineSampleSize, minRecentSampleSize } = thresholds;
+  const {
+    zScoreThreshold,
+    relativeChangeThreshold,
+    minBaselineSampleSize,
+    minRecentSampleSize,
+    iqrRelativeChangeThreshold,
+    quartileShiftThreshold,
+    skewnessChangeThreshold,
+    kurtosisChangeThreshold,
+    outlierCountDiffThreshold,
+  } = thresholds;
 
   const baselineCount = baseline.summary.count;
   const recentCount = recent.summary.count;
@@ -135,6 +175,19 @@ function analyseMetric(
   const recentMedian = recent.summary.median;
   const baselineMedian = baseline.summary.median;
   const baselineStd = baseline.summary.standardDeviation ?? null;
+
+  const baselinePercentile25 = normalizeStat(baseline.distribution.percentile25);
+  const recentPercentile25 = normalizeStat(recent.distribution.percentile25);
+  const baselinePercentile75 = normalizeStat(baseline.distribution.percentile75);
+  const recentPercentile75 = normalizeStat(recent.distribution.percentile75);
+  const baselineIqr = normalizeStat(baseline.distribution.interquartileRange);
+  const recentIqr = normalizeStat(recent.distribution.interquartileRange);
+  const baselineSkewness = normalizeStat(baseline.distribution.skewness);
+  const recentSkewness = normalizeStat(recent.distribution.skewness);
+  const baselineKurtosis = normalizeStat(baseline.distribution.kurtosis);
+  const recentKurtosis = normalizeStat(recent.distribution.kurtosis);
+  const baselineOutlierCount = computeOutlierCount(baseline.outliers);
+  const recentOutlierCount = computeOutlierCount(recent.outliers);
 
   const baselineValue = valueOrFallback(baselineMean, baselineMedian);
   const recentValue = valueOrFallback(recentMean, recentMedian);
@@ -177,7 +230,68 @@ function analyseMetric(
 
     if (!isAnomaly && absoluteChange !== null && baselineStd === 0 && absoluteChange !== 0) {
       isAnomaly = true;
-      reasons.push('baseline variance is zero while change detected');
+      reasons.push('baseline standard deviation is zero while change detected');
+    }
+
+    if (baselineIqr !== null && recentIqr !== null) {
+      if (baselineIqr === 0) {
+        if (recentIqr !== 0) {
+          isAnomaly = true;
+          reasons.push(`IQR expanded from 0 to ${recentIqr.toFixed(2)}`);
+        }
+      } else {
+        const iqrRelativeChange = (recentIqr - baselineIqr) / baselineIqr;
+        if (Math.abs(iqrRelativeChange) >= iqrRelativeChangeThreshold) {
+          isAnomaly = true;
+          reasons.push(`IQR change=${formatPercent(iqrRelativeChange)} (threshold ${formatPercent(iqrRelativeChangeThreshold)})`);
+        }
+      }
+    }
+
+    const quartileScale = deriveQuartileScale(baselineIqr, baselinePercentile25, baselinePercentile75, baselineMedian, baselineMean);
+    if (quartileScale !== null && quartileScale !== 0 && baselinePercentile25 !== null && recentPercentile25 !== null) {
+      const normalizedShift = Math.abs(recentPercentile25 - baselinePercentile25) / quartileScale;
+      if (normalizedShift >= quartileShiftThreshold) {
+        isAnomaly = true;
+        reasons.push(`Q1 shift=${formatPercent(normalizedShift)} of baseline spread (threshold ${formatPercent(quartileShiftThreshold)})`);
+      }
+    }
+    if (quartileScale !== null && quartileScale !== 0 && baselinePercentile75 !== null && recentPercentile75 !== null) {
+      const normalizedShift = Math.abs(recentPercentile75 - baselinePercentile75) / quartileScale;
+      if (normalizedShift >= quartileShiftThreshold) {
+        isAnomaly = true;
+        reasons.push(`Q3 shift=${formatPercent(normalizedShift)} of baseline spread (threshold ${formatPercent(quartileShiftThreshold)})`);
+      }
+    }
+    if (quartileScale === 0 && baselinePercentile25 !== null && recentPercentile25 !== null && baselinePercentile25 !== recentPercentile25) {
+      isAnomaly = true;
+      reasons.push(`quartile shift detected despite zero baseline spread (Q1 ${baselinePercentile25.toFixed(2)} → ${recentPercentile25.toFixed(2)})`);
+    }
+    if (quartileScale === 0 && baselinePercentile75 !== null && recentPercentile75 !== null && baselinePercentile75 !== recentPercentile75) {
+      isAnomaly = true;
+      reasons.push(`quartile shift detected despite zero baseline spread (Q3 ${baselinePercentile75.toFixed(2)} → ${recentPercentile75.toFixed(2)})`);
+    }
+
+    if (baselineSkewness !== null && recentSkewness !== null) {
+      const skewnessDelta = Math.abs(recentSkewness - baselineSkewness);
+      if (skewnessDelta >= skewnessChangeThreshold) {
+        isAnomaly = true;
+        reasons.push(`skewness Δ=${skewnessDelta.toFixed(2)} (threshold ${skewnessChangeThreshold.toFixed(2)})`);
+      }
+    }
+
+    if (baselineKurtosis !== null && recentKurtosis !== null) {
+      const kurtosisDelta = Math.abs(recentKurtosis - baselineKurtosis);
+      if (kurtosisDelta >= kurtosisChangeThreshold) {
+        isAnomaly = true;
+        reasons.push(`kurtosis Δ=${kurtosisDelta.toFixed(2)} (threshold ${kurtosisChangeThreshold.toFixed(2)})`);
+      }
+    }
+
+    const outlierDiff = recentOutlierCount - baselineOutlierCount;
+    if (Math.abs(outlierDiff) >= outlierCountDiffThreshold) {
+      isAnomaly = true;
+      reasons.push(`outlier count change=${outlierDiff} (threshold ±${outlierCountDiffThreshold})`);
     }
   }
 
@@ -199,6 +313,18 @@ function analyseMetric(
     recentMedian,
     baselineCount,
     recentCount,
+    baselinePercentile25,
+    recentPercentile25,
+    baselinePercentile75,
+    recentPercentile75,
+    baselineIqr,
+    recentIqr,
+    baselineSkewness,
+    recentSkewness,
+    baselineKurtosis,
+    recentKurtosis,
+    baselineOutlierCount,
+    recentOutlierCount,
   };
 }
 
@@ -255,6 +381,53 @@ function computeBaselineRange(
     start: baselineStartDay.toISOString(),
     end: endOfDay(baselineEndDay).toISOString(),
   };
+}
+
+/**
+ * 統計量（四分位範囲など）のスケールを決定する。
+ *
+ * @param baselineIqr ベースライン IQR
+ * @param baselineQ1 ベースライン第1四分位
+ * @param baselineQ3 ベースライン第3四分位
+ * @param baselineMedian ベースライン中央値
+ * @param baselineMean ベースライン平均
+ * @returns 変化量比較のためのスケール。算出不能時は null
+ */
+function deriveQuartileScale(
+  baselineIqr: number | null,
+  baselineQ1: number | null,
+  baselineQ3: number | null,
+  baselineMedian: number | null,
+  baselineMean: number | null,
+): number | null {
+  if (baselineIqr !== null) {
+    return baselineIqr;
+  }
+  if (baselineQ1 !== null && baselineQ3 !== null) {
+    const span = Math.abs(baselineQ3 - baselineQ1);
+    if (span !== 0) {
+      return span;
+    }
+  }
+  const central = valueOrFallback(baselineMedian, baselineMean);
+  if (central !== null && central !== 0) {
+    return Math.abs(central);
+  }
+  return null;
+}
+
+/**
+ * 数値統計量を null/undefined の場合に null に正規化する。
+ */
+function normalizeStat(value?: number | null): number | null {
+  return value ?? null;
+}
+
+/**
+ * 外れ値情報から検出件数を集計する。
+ */
+function computeOutlierCount(outliers: MetricStatisticsResult['outliers']): number {
+  return (outliers.iqr?.detectedCount ?? 0) + (outliers.zscore?.detectedCount ?? 0);
 }
 
 /**

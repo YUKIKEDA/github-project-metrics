@@ -103,6 +103,18 @@ export interface MetricAnomalySummary {
   recentMedian: number | null;
   baselineCount: number;
   recentCount: number;
+  baselinePercentile25: number | null;
+  recentPercentile25: number | null;
+  baselinePercentile75: number | null;
+  recentPercentile75: number | null;
+  baselineIqr: number | null;
+  recentIqr: number | null;
+  baselineSkewness: number | null;
+  recentSkewness: number | null;
+  baselineKurtosis: number | null;
+  recentKurtosis: number | null;
+  baselineOutlierCount: number;
+  recentOutlierCount: number;
 }
 
 /** 異常検知の集計結果。 */
