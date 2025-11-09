@@ -1,5 +1,835 @@
 [
   {
+    "number": 34,
+    "title": "[Feat] プロジェクトのフィールドの変更イベントを取得できるようにする",
+    "state": "open",
+    "created_at": "2025-11-09T06:05:23Z",
+    "updated_at": "2025-11-09T06:05:29Z",
+    "closed_at": null,
+    "user": {
+      "login": "YUKIKEDA",
+      "id": 68575924
+    },
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
+    "labels": [
+      {
+        "name": "enhancement",
+        "color": "a2eeef"
+      }
+    ],
+    "milestone": null,
+    "comments": 0,
+    "body": "### どのような課題を解決するものですか？\n\n_no response_\n\n### どのような解決策を提案しますか？\n\n_no response_\n\n### 他に考えられる代替案はありますか？\n\n_No response_\n\n### その他 (追加のコンテキスト)\n\n_No response_",
+    "pull_request": false,
+    "draft": false,
+    "events": [
+      {
+        "id": 20816444167,
+        "event": "added_to_project_v2",
+        "created_at": "2025-11-09T06:05:23Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816443697,
+        "event": "labeled",
+        "created_at": "2025-11-09T06:05:24Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": {
+          "name": "enhancement",
+          "color": "a2eeef"
+        },
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816444088,
+        "event": "assigned",
+        "created_at": "2025-11-09T06:05:29Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816444549,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T06:05:32Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "PVT_kwHOBBZitM4BF6-B",
+        "projectTitle": "github-project-metrics",
+        "projectNumber": 8,
+        "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
+        "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
+              "name": "Title"
+            },
+            "fieldName": "Title",
+            "value": "[Feat] プロジェクトのフィールドの変更イベントを取得できるようにする",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "In Progress",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTIF_lAHOBBZitM4BF6-Bzg3HhvM",
+              "name": "Iteration"
+            },
+            "fieldName": "Iteration",
+            "value": null,
+            "iteration": {
+              "iterationId": "a8a4a73c",
+              "title": "Iteration 4",
+              "startDate": "2025-11-09",
+              "duration": 7
+            },
+            "milestone": null,
+            "users": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "number": 33,
+    "title": "Feat-github-pages-docusaurus-customize",
+    "state": "closed",
+    "created_at": "2025-11-09T05:33:38Z",
+    "updated_at": "2025-11-09T05:35:39Z",
+    "closed_at": "2025-11-09T05:35:38Z",
+    "user": {
+      "login": "YUKIKEDA",
+      "id": 68575924
+    },
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
+    "labels": [],
+    "milestone": null,
+    "comments": 0,
+    "body": "### 概要 📝\n- `docs/src/components/Dashboard/AnalysisTabs.tsx` を Prettier に合わせてフォーマットを刷新し、長文化した JSX を読みやすく整理しました。\n- 使われていなかった型・ユーティリティ (`PeriodInfo`, `calculateThroughput`, `formatDate`) を削除してバンドルと静的解析をシンプルにしました。\n- ダッシュボード要件をまとめた `Requirements.md` を追加し、機能/非機能要件をドキュメント化しました。\n\n### 関連する Issue 🔗\n- なし\n\n### 変更内容 🔍\n- [x] `AnalysisTabs.tsx` のフォーマット統一と可読性向上\n- [x] 未使用の型・ユーティリティ・import の整理 (`types.ts`, `utils.ts`, `ProductivityDashboard.tsx`)\n- [x] 要件定義ドキュメント `Requirements.md` の追加\n\n### スクリーンショット（UIの変更がある場合） 📸\n- UI 変更なし\n\n### 動作確認方法 ✅\n1. `npm install`\n2. `npm run start`\n3. ドキュメントサイトでダッシュボードページを開き、グラフ描画とタブ切替が問題無く行えることを確認\n\n### セルフチェックリスト ☑️\n- [ ] 自身のコードをセルフレビューしましたか？\n- [ ] 関連するドキュメントは更新しましたか？（必要な場合）\n- [ ] 新しい依存関係を追加した場合、その必要性を説明できますか？\n- [ ] テストは追加・修正しましたか？（リグレッションテスト、ユニットテストなど）\n- [ ] `npm run lint` や `npm run format` などのコマンドを実行し、エラーがないことを確認しましたか？\n\n### 備考 ✏️\n- 変更の大半は自動整形による差分です。ビジュアル差分で確認してください。",
+    "pull_request": true,
+    "draft": false,
+    "events": [
+      {
+        "id": 20816359059,
+        "event": "assigned",
+        "created_at": "2025-11-09T05:33:53Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816359520,
+        "event": "added_to_project_v2",
+        "created_at": "2025-11-09T05:33:58Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816360268,
+        "event": "connected",
+        "created_at": "2025-11-09T05:34:29Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816363124,
+        "event": "merged",
+        "created_at": "2025-11-09T05:35:38Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": "5ed875866e15134e9e3a9909160854ebf4534c73",
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/5ed875866e15134e9e3a9909160854ebf4534c73"
+      },
+      {
+        "id": 20816363128,
+        "event": "closed",
+        "created_at": "2025-11-09T05:35:38Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816363185,
+        "event": "head_ref_deleted",
+        "created_at": "2025-11-09T05:35:39Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816363405,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T05:35:40Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "PVT_kwHOBBZitM4BF6-B",
+        "projectTitle": "github-project-metrics",
+        "projectNumber": 8,
+        "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
+        "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
+              "name": "Title"
+            },
+            "fieldName": "Title",
+            "value": "Feat-github-pages-docusaurus-customize",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTIF_lAHOBBZitM4BF6-Bzg3HhvM",
+              "name": "Iteration"
+            },
+            "fieldName": "Iteration",
+            "value": null,
+            "iteration": {
+              "iterationId": "a8a4a73c",
+              "title": "Iteration 4",
+              "startDate": "2025-11-09",
+              "duration": 7
+            },
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "Done",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "number": 32,
+    "title": "feat: Enhance GitHub Action with debug output option",
+    "state": "closed",
+    "created_at": "2025-11-08T08:53:45Z",
+    "updated_at": "2025-11-08T08:54:52Z",
+    "closed_at": "2025-11-08T08:54:50Z",
+    "user": {
+      "login": "YUKIKEDA",
+      "id": 68575924
+    },
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
+    "labels": [],
+    "milestone": null,
+    "comments": 0,
+    "body": "### 概要 📝\n- GitHub Actions の不要な `setOutput` をすべて整理し、アクションのインターフェースをシンプルにしました。\n- 生成される `issues.json` / `statistics.json` のスキーマ概要を README に追記し、利用者が JSON 構造を把握できるようにしました。\n- README から旧仕様の記述（未使用 outputs 参照例など）を整理しました。\n\n### 関連する Issue 🔗\n- （該当があれば記入してください）\n\n### 変更内容 🔍\n- [x] `action.yml` から未使用の outputs 定義を削除\n- [x] `src/issues.js` / `src/projects.js` の `setOutput` 呼び出しを整理し、必要なログだけを残す\n- [x] README に JSON スキーマの説明を追加し、旧記述を更新\n\n### 動作確認方法 ✅\n1. `npm run build` を実行し、`dist/index.js` が再生成されることを確認\n\n### セルフチェックリスト ☑️\n- [x] 自身のコードをセルフレビューしましたか？\n- [x] 関連するドキュメントは更新しましたか？（README）\n- [x] 新しい依存関係を追加していません\n- [ ] テストは必要ありません（既存機能への影響はログ／出力整理のみ）\n- [x] `npm run build` を実行し、エラーがないことを確認しました\n\n### 備考 ✏️\n- `debug-json` を `true` にした場合の挙動はこれまで通り変わりません。",
+    "pull_request": true,
+    "draft": false,
+    "events": [
+      {
+        "id": 20805373009,
+        "event": "connected",
+        "created_at": "2025-11-08T08:53:47Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805377337,
+        "event": "assigned",
+        "created_at": "2025-11-08T08:54:04Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805378254,
+        "event": "added_to_project_v2",
+        "created_at": "2025-11-08T08:54:12Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805391452,
+        "event": "merged",
+        "created_at": "2025-11-08T08:54:50Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": "b19c826efa08a0041153bfc23f77ac9a48bc3295",
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/b19c826efa08a0041153bfc23f77ac9a48bc3295"
+      },
+      {
+        "id": 20805391453,
+        "event": "closed",
+        "created_at": "2025-11-08T08:54:50Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805391510,
+        "event": "head_ref_deleted",
+        "created_at": "2025-11-08T08:54:51Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805391918,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-08T08:54:52Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "PVT_kwHOBBZitM4BF6-B",
+        "projectTitle": "github-project-metrics",
+        "projectNumber": 8,
+        "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
+        "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
+              "name": "Title"
+            },
+            "fieldName": "Title",
+            "value": "feat: Enhance GitHub Action with debug output option",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "Done",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "number": 31,
+    "title": "[Feat] デバッグ時以外はJsonの生データを標準出力に表示しないようにする",
+    "state": "closed",
+    "created_at": "2025-11-08T08:25:31Z",
+    "updated_at": "2025-11-08T08:54:51Z",
+    "closed_at": "2025-11-08T08:54:51Z",
+    "user": {
+      "login": "YUKIKEDA",
+      "id": 68575924
+    },
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
+    "labels": [
+      {
+        "name": "enhancement",
+        "color": "a2eeef"
+      }
+    ],
+    "milestone": null,
+    "comments": 0,
+    "body": "### どのような課題を解決するものですか？\n\n_no response_\n\n### どのような解決策を提案しますか？\n\n_no response_\n\n### 他に考えられる代替案はありますか？\n\n_No response_\n\n### その他 (追加のコンテキスト)\n\n_No response_",
+    "pull_request": false,
+    "draft": false,
+    "events": [
+      {
+        "id": 20804992254,
+        "event": "assigned",
+        "created_at": "2025-11-08T08:25:32Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20804992289,
+        "event": "labeled",
+        "created_at": "2025-11-08T08:25:32Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": {
+          "name": "enhancement",
+          "color": "a2eeef"
+        },
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20804992681,
+        "event": "added_to_project_v2",
+        "created_at": "2025-11-08T08:25:32Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20804994269,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-08T08:25:45Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805373010,
+        "event": "connected",
+        "created_at": "2025-11-08T08:53:47Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805391495,
+        "event": "closed",
+        "created_at": "2025-11-08T08:54:51Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20805391682,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-08T08:54:52Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "PVT_kwHOBBZitM4BF6-B",
+        "projectTitle": "github-project-metrics",
+        "projectNumber": 8,
+        "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
+        "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
+              "name": "Title"
+            },
+            "fieldName": "Title",
+            "value": "[Feat] デバッグ時以外はJsonの生データを標準出力に表示しないようにする",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "Done",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          }
+        ]
+      }
+    ]
+  },
+  {
     "number": 30,
     "title": "feat: Add GitHub Actions workflow for deploying documentation to GitHub Pages",
     "state": "closed",
@@ -253,19 +1083,28 @@
   {
     "number": 29,
     "title": "[Feat] ドキュメントページに、サイドナビゲーションを追加（右左両方）",
-    "state": "open",
+    "state": "closed",
     "created_at": "2025-11-06T16:08:00Z",
-    "updated_at": "2025-11-06T16:08:00Z",
-    "closed_at": null,
+    "updated_at": "2025-11-09T05:36:41Z",
+    "closed_at": "2025-11-09T05:31:56Z",
     "user": {
       "login": "YUKIKEDA",
       "id": 68575924
     },
-    "assignees": [],
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
     "labels": [
       {
         "name": "enhancement",
         "color": "a2eeef"
+      },
+      {
+        "name": "wontfix",
+        "color": "ffffff"
       }
     ],
     "milestone": null,
@@ -327,6 +1166,97 @@
         "requested_team": null,
         "commit_id": null,
         "commit_url": null
+      },
+      {
+        "id": 20816353894,
+        "event": "labeled",
+        "created_at": "2025-11-09T05:31:48Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": {
+          "name": "wontfix",
+          "color": "ffffff"
+        },
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816354140,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T05:31:51Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816354343,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T05:31:53Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816354216,
+        "event": "closed",
+        "created_at": "2025-11-09T05:31:56Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816365823,
+        "event": "assigned",
+        "created_at": "2025-11-09T05:36:41Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
       }
     ],
     "projects": [
@@ -336,6 +1266,22 @@
         "projectNumber": 8,
         "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
         "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
           {
             "fieldName": "",
             "value": null,
@@ -357,6 +1303,17 @@
             },
             "fieldName": "Title",
             "value": "[Feat] ドキュメントページに、サイドナビゲーションを追加（右左両方）",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "Done",
             "iteration": null,
             "milestone": null,
             "users": null
@@ -1142,10 +2099,10 @@
   {
     "number": 24,
     "title": "[Feat] GitHub Pagesに分析結果を表示できるようにしたい",
-    "state": "open",
+    "state": "closed",
     "created_at": "2025-11-02T06:58:05Z",
-    "updated_at": "2025-11-02T06:58:38Z",
-    "closed_at": null,
+    "updated_at": "2025-11-09T05:35:39Z",
+    "closed_at": "2025-11-09T05:35:39Z",
     "user": {
       "login": "YUKIKEDA",
       "id": 68575924
@@ -1241,6 +2198,57 @@
         "requested_team": null,
         "commit_id": null,
         "commit_url": null
+      },
+      {
+        "id": 20816360271,
+        "event": "connected",
+        "created_at": "2025-11-09T05:34:29Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816363181,
+        "event": "closed",
+        "created_at": "2025-11-09T05:35:39Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
+      },
+      {
+        "id": 20816363454,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T05:35:40Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
       }
     ],
     "projects": [
@@ -1281,6 +2289,13 @@
             "users": null
           },
           {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
             "field": {
               "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
               "name": "Title"
@@ -1297,7 +2312,7 @@
               "name": "Status"
             },
             "fieldName": "Status",
-            "value": "Todo",
+            "value": "Done",
             "iteration": null,
             "milestone": null,
             "users": null
@@ -1559,10 +2574,10 @@
   },
   {
     "number": 22,
-    "title": "[Feat] 統計分析またはIssueの取得期間をしてきできるようにしたい",
+    "title": "[Feat] 統計分析またはIssueの取得期間を指定できるようにしたい",
     "state": "open",
     "created_at": "2025-11-02T06:53:20Z",
-    "updated_at": "2025-11-02T06:53:33Z",
+    "updated_at": "2025-11-09T05:32:35Z",
     "closed_at": null,
     "user": {
       "login": "YUKIKEDA",
@@ -1679,6 +2694,26 @@
         "requested_team": null,
         "commit_id": null,
         "commit_url": null
+      },
+      {
+        "id": 20816356045,
+        "event": "renamed",
+        "created_at": "2025-11-09T05:32:35Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": {
+          "from": "[Feat] 統計分析またはIssueの取得期間をしてきできるようにしたい",
+          "to": "[Feat] 統計分析またはIssueの取得期間を指定できるようにしたい"
+        },
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null
       }
     ],
     "projects": [
@@ -1724,7 +2759,7 @@
               "name": "Title"
             },
             "fieldName": "Title",
-            "value": "[Feat] 統計分析またはIssueの取得期間をしてきできるようにしたい",
+            "value": "[Feat] 統計分析またはIssueの取得期間を指定できるようにしたい",
             "iteration": null,
             "milestone": null,
             "users": null

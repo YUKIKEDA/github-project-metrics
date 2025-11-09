@@ -76,18 +76,55 @@ export function calculateLeadTime(issue: Issue): number | null {
 
 /**
  * サイクルタイムを計算（日数）
- * ※簡易版：最初のassignedイベントからクローズまで
+ * ※簡易版：最初の「In Progress」ステータス遷移からクローズまで（なければassignedイベントを起点）
  */
 export function calculateCycleTime(issue: Issue): number | null {
   if (!issue.closed_at) return null;
 
-  const assignedEvent = issue.events.find(e => e.event === 'assigned');
-  if (!assignedEvent) {
-    // assignedイベントがない場合はcreated_atから計算
-    return calculateLeadTime(issue);
+  const normalizeStatusName = (event: Issue['events'][number]): string | null => {
+    const eventAny = event as any;
+    const candidates: Array<string | null | undefined> = [
+      eventAny.project_item?.status?.name,
+      eventAny.project_item?.status?.title,
+      eventAny.project_card?.column_name,
+    ];
+
+    if (eventAny.changes && typeof eventAny.changes === 'object') {
+      const changesAny = eventAny.changes as Record<string, unknown>;
+      const fieldValue = changesAny['field_value'] as any;
+      const newStatus = changesAny['new_status'] as any;
+
+      candidates.push(
+        typeof newStatus?.name === 'string' ? newStatus.name : null,
+        typeof newStatus?.title === 'string' ? newStatus.title : null,
+        typeof fieldValue?.name === 'string' ? fieldValue.name : null,
+        typeof fieldValue?.to === 'string' ? fieldValue.to : null,
+        typeof fieldValue?.to?.name === 'string' ? fieldValue.to.name : null
+      );
+    }
+
+    return candidates.find(name => typeof name === 'string' && name.trim().length > 0) ?? null;
+  };
+
+  const inProgressEvent = issue.events.find(event => {
+    if (event.event !== 'project_v2_item_status_changed') return false;
+    const statusName = normalizeStatusName(event);
+    if (!statusName) return false;
+    return statusName.trim().toLowerCase().includes('in progress');
+  });
+
+  if (!inProgressEvent) {
+    const assignedEvent = issue.events.find(e => e.event === 'assigned');
+    if (!assignedEvent) {
+      // 該当イベントがない場合はリードタイムで代用
+      return calculateLeadTime(issue);
+    }
+    const started = new Date(assignedEvent.created_at);
+    const closed = new Date(issue.closed_at);
+    return (closed.getTime() - started.getTime()) / (1000 * 60 * 60 * 24);
   }
 
-  const started = new Date(assignedEvent.created_at);
+  const started = new Date(inProgressEvent.created_at);
   const closed = new Date(issue.closed_at);
   return (closed.getTime() - started.getTime()) / (1000 * 60 * 60 * 24);
 }
