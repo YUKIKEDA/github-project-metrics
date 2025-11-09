@@ -1,6 +1,7 @@
 import type { Issues, IssueRecord, IssueEvent, Label } from '../issues/type';
 import type {
   IssueMetrics,
+  IssueMetricsRecord,
   MetricResult,
   LeadTimeDetails,
   CycleTimeDetails,
@@ -15,12 +16,12 @@ import type {
 const IN_PROGRESS_STATUS_KEYWORDS = ['in progress'];
 
 /**
- * Issues 一覧から指標を算出し、Issue 番号をキーにしたマップとして返す。
+ * Issues 一覧から指標を算出し、Issue 番号をキーにしたメタ情報付きメトリクスとして返す。
  * @param issues issues.json から読み込んだ Issue 配列
- * @returns Issue 番号をキーとするメトリクスの辞書
+ * @returns Issue 番号をキーとするメタ情報付きメトリクスの辞書
  */
-export function computeMetricsForIssues(issues: Issues): Record<number, IssueMetrics> {
-  const result: Record<number, IssueMetrics> = {};
+export function computeMetricsForIssues(issues: Issues): Record<number, IssueMetricsRecord> {
+  const result: Record<number, IssueMetricsRecord> = {};
   for (const issue of issues) {
     result[issue.number] = computeIssueMetrics(issue);
   }
@@ -30,9 +31,9 @@ export function computeMetricsForIssues(issues: Issues): Record<number, IssueMet
 /**
  * 単一 Issue の指標を算出する。
  * @param issue 対象の Issue レコード
- * @returns Issue の指標セット
+ * @returns Issue のメタ情報と指標セット
  */
-export function computeIssueMetrics(issue: IssueRecord): IssueMetrics {
+export function computeIssueMetrics(issue: IssueRecord): IssueMetricsRecord {
   const leadTime = calculateLeadTime(issue);
   const cycleTime = calculateCycleTime(issue);
   const reviewTime = calculateReviewTime(issue);
@@ -40,13 +41,19 @@ export function computeIssueMetrics(issue: IssueRecord): IssueMetrics {
   const complexity = calculateComplexity(issue);
   const planVsActual = calculatePlanVsActual(issue, leadTime);
 
-  return {
+  const metrics: IssueMetrics = {
     leadTime,
     cycleTime,
     reviewTime,
     commentCount,
     complexity,
     planVsActual,
+  };
+
+  return {
+    issueNumber: issue.number,
+    title: issue.title,
+    metrics,
   };
 }
 

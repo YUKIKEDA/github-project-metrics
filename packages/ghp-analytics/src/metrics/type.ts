@@ -1,4 +1,13 @@
 /**
+ * Issue メタ情報と算出済みメトリクスの集合。
+ */
+export interface IssueMetricsRecord {
+  issueNumber: number;
+  title: string;
+  metrics: IssueMetrics;
+}
+
+/**
  * Issue 毎に保持する指標値の集合。
  */
 export interface IssueMetrics {
@@ -83,5 +92,3 @@ export interface PlanVsActualDetails {
   actual?: number;
   unit?: 'minutes' | 'hours' | 'days';
 }
-
-
