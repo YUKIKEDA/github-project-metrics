@@ -1,3 +1,8 @@
+import {
+  sampleCorrelation as ssSampleCorrelation,
+  sampleRankCorrelation as ssSampleRankCorrelation,
+  sampleCovariance as ssSampleCovariance,
+} from 'simple-statistics';
 import type { IssueMetricsRecord } from '../metrics/type';
 import type {
   MetricKey,
@@ -206,22 +211,8 @@ function pearsonCorrelation(valuesA: number[], valuesB: number[]): number | null
     return null;
   }
 
-  const meanA = mean(valuesA);
-  const meanB = mean(valuesB);
-  const stdA = standardDeviation(valuesA, meanA);
-  const stdB = standardDeviation(valuesB, meanB);
-
-  if (stdA === 0 || stdB === 0) {
-    return null;
-  }
-
-  let covariance = 0;
-  for (let i = 0; i < n; i += 1) {
-    covariance += (valuesA[i] - meanA) * (valuesB[i] - meanB);
-  }
-  covariance /= n - 1;
-
-  return covariance / (stdA * stdB);
+  const result = ssSampleCorrelation(valuesA, valuesB);
+  return Number.isNaN(result) ? null : result;
 }
 
 /**
@@ -237,10 +228,8 @@ function spearmanCorrelation(valuesA: number[], valuesB: number[]): number | nul
     return null;
   }
 
-  const ranksA = rank(valuesA);
-  const ranksB = rank(valuesB);
-
-  return pearsonCorrelation(ranksA, ranksB);
+  const result = ssSampleRankCorrelation(valuesA, valuesB);
+  return Number.isNaN(result) ? null : result;
 }
 
 /**
@@ -256,66 +245,6 @@ function sampleCovariance(valuesA: number[], valuesB: number[]): number | null {
     return null;
   }
 
-  const meanA = mean(valuesA);
-  const meanB = mean(valuesB);
-  let covariance = 0;
-
-  for (let i = 0; i < n; i += 1) {
-    covariance += (valuesA[i] - meanA) * (valuesB[i] - meanB);
-  }
-
-  return covariance / (n - 1);
-}
-
-/**
- * 平均を算出する。
- *
- * @param values 対象の値列
- * @returns 平均値
- */
-function mean(values: number[]): number {
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-/**
- * 標本標準偏差を算出する。
- *
- * @param values 対象の値列
- * @param meanValue 既算出の平均値
- * @returns 標本標準偏差
- */
-function standardDeviation(values: number[], meanValue: number): number {
-  const variance = values.reduce((sum, value) => sum + (value - meanValue) ** 2, 0) / (values.length - 1);
-  return Math.sqrt(variance);
-}
-
-/**
- * データ系列を順位化する。タイは平均順位を付与。
- *
- * @param values 順位付け対象の値列
- * @returns 順位に変換した配列
- */
-function rank(values: number[]): number[] {
-  const indexed = values.map((value, index) => ({ value, index }));
-  indexed.sort((a, b) => a.value - b.value);
-
-  const ranks: number[] = new Array(values.length);
-  let i = 0;
-  while (i < indexed.length) {
-    const start = i;
-    let end = i;
-
-    while (end + 1 < indexed.length && indexed[end + 1].value === indexed[start].value) {
-      end += 1;
-    }
-
-    const rankValue = (start + end + 2) / 2;
-    for (let j = start; j <= end; j += 1) {
-      ranks[indexed[j].index] = rankValue;
-    }
-
-    i = end + 1;
-  }
-
-  return ranks;
+  const result = ssSampleCovariance(valuesA, valuesB);
+  return Number.isNaN(result) ? null : result;
 }
