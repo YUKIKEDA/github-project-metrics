@@ -48,39 +48,77 @@ declare global {
    * Issueイベントのタイプ
    */
   type IssueEventType = 
-    | "assigned"
-    | "unassigned"
-    | "labeled"
-    | "unlabeled"
-    | "milestoned"
-    | "demilestoned"
-    | "closed"
-    | "reopened"
-    | "referenced"
-    | "renamed"
-    | "locked"
-    | "unlocked"
-    | "head_ref_deleted"
-    | "head_ref_restored"
-    | "head_ref_force_pushed"
-    | "base_ref_force_pushed"
-    | "converted_note_to_issue"
-    | "moved_columns_in_project"
     | "added_to_project"
-    | "removed_from_project"
-    | "review_requested"
-    | "review_request_removed"
-    | "ready_for_review"
-    | "merged"
-    | "deployed"
+    | "added_to_project_v2"
+    | "assigned"
+    | "base_ref_force_pushed"
+    | "closed"
     | "connected"
+    | "converted_note_to_issue"
+    | "deployed"
+    | "demilestoned"
     | "disconnected"
+    | "head_ref_deleted"
+    | "head_ref_force_pushed"
+    | "head_ref_restored"
+    | "labeled"
+    | "locked"
+    | "merged"
+    | "milestoned"
+    | "moved_columns_in_project"
+    | "parent_issue_added"
+    | "project_v2_item_status_changed"
+    | "ready_for_review"
+    | "referenced"
+    | "removed_from_project"
+    | "removed_from_project_v2"
+    | "renamed"
+    | "review_request_removed"
+    | "review_requested"
+    | "reopened"
+    | "sub_issue_added"
     | "subscribed"
+    | "unassigned"
+    | "unlabeled"
+    | "unlocked"
     | "unsubscribed";
 
   /**
    * Issueイベント情報
    */
+  interface IssueEventProjectStatus {
+    /** ステータス名 */
+    name: string | null;
+    /** ステータスタイプ（存在する場合） */
+    type?: string | null;
+    /** ステータスタイトル（存在する場合） */
+    title?: string | null;
+  }
+
+  interface IssueEventProjectItem {
+    /** Project Item ID */
+    id: string | null;
+    /** Project Node ID */
+    project_node_id: string | null;
+    /** 変更前のステータス */
+    previous_status: IssueEventProjectStatus | null;
+    /** 変更後のステータス */
+    status: IssueEventProjectStatus | null;
+  }
+
+  interface IssueEventProjectCard {
+    /** プロジェクトID */
+    project_id: number | null;
+    /** プロジェクトのNode ID */
+    project_node_id: string | null;
+    /** カラム名 */
+    column_name: string | null;
+    /** 変更前のカラム名 */
+    previous_column_name?: string | null;
+    /** カラムID */
+    column_id?: number | null;
+  }
+
   interface IssueEvent {
     /** イベントID */
     id: number;
@@ -119,6 +157,12 @@ declare global {
     commit_id: string | null;
     /** コミットURL（head_ref_force_pushed/base_ref_force_pushedイベントの場合） */
     commit_url: string | null;
+    /** Project (classic) カード情報 */
+    project_card: IssueEventProjectCard | null;
+    /** Project (v2) アイテム情報 */
+    project_item: IssueEventProjectItem | null;
+    /** 追加の変更情報（イベント固有） */
+    changes: Record<string, unknown> | null;
   }
 
   /**
