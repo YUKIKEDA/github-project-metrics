@@ -1,11 +1,281 @@
 [
   {
+    "number": 35,
+    "title": "Feat-fetch-project-event",
+    "state": "closed",
+    "created_at": "2025-11-09T06:58:43Z",
+    "updated_at": "2025-11-09T06:59:24Z",
+    "closed_at": "2025-11-09T06:59:23Z",
+    "user": {
+      "login": "YUKIKEDA",
+      "id": 68575924
+    },
+    "assignees": [
+      {
+        "login": "YUKIKEDA",
+        "id": 68575924
+      }
+    ],
+    "labels": [],
+    "milestone": null,
+    "comments": 0,
+    "body": "### 概要 📝\n- GitHub Project (v2) のステータス変更イベントを取得し、Issue のイベント情報に Project 情報（`project_item` / `project_card` / `changes`）を含めるよう拡張しました。\n- サイクルタイム計算を「In Progress」ステータス遷移を起点に算出するよう修正し、フォールバックとして従来の assigned 起点も保持しました。\n- 上記に合わせて型定義とコメントを更新しました。\n\n### 関連する Issue 🔗\n- close #32\n\n### 変更内容 🔍\n- [x] タイムラインイベント API を利用し、In Progress を含む Project V2 ステータスイベントを取得\n- [x] `IssueEvent` 型に Project 関連フィールドを追加\n- [x] サイクルタイム計算ロジックおよびコメントを「In Progress」起点に更新\n\n### スクリーンショット（UIの変更がある場合） 📸\n| Before | After |\n|--------|-------|\n| なし | なし |\n\n### 動作確認方法 ✅\n1. GitHub Actions（Issue 収集ワークフロー）を再実行し、`docs/static/data/issues.json` を再生成\n2. `docs/static/data/issues.json` 内の各 Issue の `events` に `project_v2_item_status_changed` イベントが含まれ、`project_item.status` が取得できていることを確認\n3. `npm run start`（または静的生成後のプレビュー）でダッシュボードを開き、サイクルタイムが In Progress 起点で算出されていることを確認\n\n### セルフチェックリスト ☑️\n- [x] 自身のコードをセルフレビューしましたか？\n- [ ] 関連するドキュメントは更新しましたか？（必要性なし）\n- [x] 新しい依存関係を追加した場合、その必要性を説明できますか？（追加なし）\n- [ ] テストは追加・修正しましたか？（対象外）\n- [x] `npm run lint` などのコマンドを実行し、エラーがないことを確認しましたか？（対象ファイルのみ）\n\n### 備考 ✏️\n- `issues.json` の更新は API 実行環境が必要なため、ワークフロー実行後に差分を確認・反映してください。",
+    "pull_request": true,
+    "draft": false,
+    "events": [
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816592316,
+        "event": "connected",
+        "created_at": "2025-11-09T06:58:44Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816593286,
+        "event": "assigned",
+        "created_at": "2025-11-09T06:58:50Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816593792,
+        "event": "added_to_project_v2",
+        "created_at": "2025-11-09T06:58:54Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594665,
+        "event": "merged",
+        "created_at": "2025-11-09T06:59:23Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": "36dae810c3c89e391c5d825effd90acd844319a9",
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/36dae810c3c89e391c5d825effd90acd844319a9",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594666,
+        "event": "closed",
+        "created_at": "2025-11-09T06:59:23Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594720,
+        "event": "head_ref_deleted",
+        "created_at": "2025-11-09T06:59:24Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594949,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T06:59:25Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      }
+    ],
+    "projects": [
+      {
+        "projectId": "PVT_kwHOBBZitM4BF6-B",
+        "projectTitle": "github-project-metrics",
+        "projectNumber": 8,
+        "projectUrl": "https://github.com/users/YUKIKEDA/projects/8",
+        "fieldValues": [
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheE",
+              "name": "Assignees"
+            },
+            "fieldName": "Assignees",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": [
+              {
+                "id": "MDQ6VXNlcjY4NTc1OTI0",
+                "login": "YUKIKEDA"
+              }
+            ]
+          },
+          {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
+              "name": "Title"
+            },
+            "fieldName": "Title",
+            "value": "Feat-fetch-project-event",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTIF_lAHOBBZitM4BF6-Bzg3HhvM",
+              "name": "Iteration"
+            },
+            "fieldName": "Iteration",
+            "value": null,
+            "iteration": {
+              "iterationId": "a8a4a73c",
+              "title": "Iteration 4",
+              "startDate": "2025-11-09",
+              "duration": 7
+            },
+            "milestone": null,
+            "users": null
+          },
+          {
+            "field": {
+              "id": "PVTSSF_lAHOBBZitM4BF6-Bzg3HheI",
+              "name": "Status"
+            },
+            "fieldName": "Status",
+            "value": "Done",
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          }
+        ]
+      }
+    ]
+  },
+  {
     "number": 34,
     "title": "[Feat] プロジェクトのフィールドの変更イベントを取得できるようにする",
-    "state": "open",
+    "state": "closed",
     "created_at": "2025-11-09T06:05:23Z",
-    "updated_at": "2025-11-09T06:05:29Z",
-    "closed_at": null,
+    "updated_at": "2025-11-09T06:59:24Z",
+    "closed_at": "2025-11-09T06:59:24Z",
     "user": {
       "login": "YUKIKEDA",
       "id": 68575924
@@ -43,7 +313,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816443697,
@@ -63,7 +336,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816444088,
@@ -83,7 +359,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816444549,
@@ -100,7 +379,70 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816592320,
+        "event": "connected",
+        "created_at": "2025-11-09T06:58:44Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594709,
+        "event": "closed",
+        "created_at": "2025-11-09T06:59:24Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "id": 20816594967,
+        "event": "project_v2_item_status_changed",
+        "created_at": "2025-11-09T06:59:24Z",
+        "actor": {
+          "login": "github-project-automation[bot]",
+          "id": 113052574
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -141,6 +483,13 @@
             "users": null
           },
           {
+            "fieldName": "",
+            "value": null,
+            "iteration": null,
+            "milestone": null,
+            "users": null
+          },
+          {
             "field": {
               "id": "PVTF_lAHOBBZitM4BF6-Bzg3HheA",
               "name": "Title"
@@ -157,7 +506,7 @@
               "name": "Status"
             },
             "fieldName": "Status",
-            "value": "In Progress",
+            "value": "Done",
             "iteration": null,
             "milestone": null,
             "users": null
@@ -207,6 +556,246 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20816359059,
         "event": "assigned",
         "created_at": "2025-11-09T05:33:53Z",
@@ -224,7 +813,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816359520,
@@ -241,7 +833,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816360268,
@@ -258,7 +853,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363124,
@@ -275,7 +873,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "5ed875866e15134e9e3a9909160854ebf4534c73",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/5ed875866e15134e9e3a9909160854ebf4534c73"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/5ed875866e15134e9e3a9909160854ebf4534c73",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363128,
@@ -292,7 +893,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363185,
@@ -309,7 +913,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363405,
@@ -326,7 +933,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -426,6 +1036,21 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20805373009,
         "event": "connected",
         "created_at": "2025-11-08T08:53:47Z",
@@ -440,7 +1065,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805377337,
@@ -460,7 +1088,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805378254,
@@ -477,7 +1108,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391452,
@@ -494,7 +1128,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "b19c826efa08a0041153bfc23f77ac9a48bc3295",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/b19c826efa08a0041153bfc23f77ac9a48bc3295"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/b19c826efa08a0041153bfc23f77ac9a48bc3295",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391453,
@@ -511,7 +1148,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391510,
@@ -528,7 +1168,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391918,
@@ -545,7 +1188,29 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "cross-referenced",
+        "created_at": "2025-11-09T06:58:44Z",
+        "actor": {
+          "login": "YUKIKEDA",
+          "id": 68575924
+        },
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -651,7 +1316,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20804992289,
@@ -671,7 +1339,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20804992681,
@@ -688,7 +1359,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20804994269,
@@ -705,7 +1379,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805373010,
@@ -722,7 +1399,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391495,
@@ -739,7 +1419,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20805391682,
@@ -756,7 +1439,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -859,6 +1545,51 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20791878690,
         "event": "connected",
         "created_at": "2025-11-07T16:11:14Z",
@@ -873,7 +1604,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791883060,
@@ -893,7 +1627,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791885288,
@@ -913,7 +1650,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791886449,
@@ -930,7 +1670,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791904652,
@@ -947,7 +1690,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "2b73c274b0cc886fc330d00e1e456cec64a08d4b",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/2b73c274b0cc886fc330d00e1e456cec64a08d4b"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/2b73c274b0cc886fc330d00e1e456cec64a08d4b",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791904697,
@@ -964,7 +1710,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791905584,
@@ -981,7 +1730,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791907909,
@@ -998,7 +1750,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -1128,7 +1883,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20764336098,
@@ -1145,7 +1903,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20764336389,
@@ -1165,7 +1926,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816353894,
@@ -1185,7 +1949,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816354140,
@@ -1202,7 +1969,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816354343,
@@ -1219,7 +1989,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816354216,
@@ -1236,7 +2009,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816365823,
@@ -1256,7 +2032,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -1366,7 +2145,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20733392243,
@@ -1386,7 +2168,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20733393800,
@@ -1406,7 +2191,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20733395636,
@@ -1423,7 +2211,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20764336083,
@@ -1440,7 +2231,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791878720,
@@ -1457,7 +2251,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791905220,
@@ -1474,7 +2271,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20791908181,
@@ -1491,7 +2291,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -1610,6 +2413,36 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20660825682,
         "event": "connected",
         "created_at": "2025-11-02T13:56:45Z",
@@ -1624,7 +2457,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660826150,
@@ -1644,7 +2480,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660826890,
@@ -1664,7 +2503,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660827533,
@@ -1681,7 +2523,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660828987,
@@ -1698,7 +2543,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660829815,
@@ -1715,7 +2563,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "ba3807e4625bb4e39e39812fdf8c0c616a28a234",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/ba3807e4625bb4e39e39812fdf8c0c616a28a234"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/ba3807e4625bb4e39e39812fdf8c0c616a28a234",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660829819,
@@ -1732,7 +2583,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660829887,
@@ -1749,7 +2603,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660830110,
@@ -1766,7 +2623,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -1890,7 +2750,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657708660,
@@ -1907,7 +2770,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657710265,
@@ -1924,7 +2790,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": []
@@ -1973,7 +2842,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657689685,
@@ -1993,7 +2865,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657690236,
@@ -2010,7 +2885,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657690546,
@@ -2030,7 +2908,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -2143,7 +3024,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657685253,
@@ -2160,7 +3044,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657686311,
@@ -2180,7 +3067,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657686591,
@@ -2197,7 +3087,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816360271,
@@ -2214,7 +3107,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363181,
@@ -2231,7 +3127,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816363454,
@@ -2248,7 +3147,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -2351,6 +3253,36 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20657676653,
         "event": "connected",
         "created_at": "2025-11-02T06:54:38Z",
@@ -2365,7 +3297,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657677663,
@@ -2385,7 +3320,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657677982,
@@ -2405,7 +3343,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657678340,
@@ -2422,7 +3363,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679440,
@@ -2439,7 +3383,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "02799ccd94b8cbae561dd277ef24382144c95512",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/02799ccd94b8cbae561dd277ef24382144c95512"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/02799ccd94b8cbae561dd277ef24382144c95512",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679446,
@@ -2456,7 +3403,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679487,
@@ -2473,7 +3423,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679662,
@@ -2490,7 +3443,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -2616,7 +3572,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657673876,
@@ -2636,7 +3595,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657674237,
@@ -2656,7 +3618,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657674330,
@@ -2676,7 +3641,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657674673,
@@ -2693,7 +3661,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20816356045,
@@ -2713,7 +3684,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -2839,7 +3813,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657609341,
@@ -2859,7 +3836,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657609960,
@@ -2876,7 +3856,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657609974,
@@ -2896,7 +3879,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660825686,
@@ -2913,7 +3899,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660829867,
@@ -2930,7 +3919,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20660830142,
@@ -2947,7 +3939,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -3066,6 +4061,36 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20657455574,
         "event": "connected",
         "created_at": "2025-11-02T05:29:00Z",
@@ -3080,7 +4105,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657456050,
@@ -3100,7 +4128,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657456833,
@@ -3120,7 +4151,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657457121,
@@ -3137,7 +4171,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657458741,
@@ -3154,7 +4191,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "844dff7459251666d4e26d2914539ae03819f0d1",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/844dff7459251666d4e26d2914539ae03819f0d1"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/844dff7459251666d4e26d2914539ae03819f0d1",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657458746,
@@ -3171,7 +4211,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657458787,
@@ -3188,7 +4231,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657458903,
@@ -3205,7 +4251,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -3317,6 +4366,126 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20635739458,
         "event": "connected",
         "created_at": "2025-10-31T14:32:35Z",
@@ -3331,7 +4500,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635742320,
@@ -3351,7 +4523,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635745582,
@@ -3371,7 +4546,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635747241,
@@ -3388,7 +4566,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635763228,
@@ -3405,7 +4586,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "b52a09bfd95d00a33ddff3f45e79c4612f974f0e",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/b52a09bfd95d00a33ddff3f45e79c4612f974f0e"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/b52a09bfd95d00a33ddff3f45e79c4612f974f0e",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635763262,
@@ -3422,7 +4606,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635763875,
@@ -3439,7 +4626,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635764460,
@@ -3456,7 +4646,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -3582,7 +4775,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635705311,
@@ -3602,7 +4798,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635707133,
@@ -3622,7 +4821,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635708163,
@@ -3639,7 +4841,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635855320,
@@ -3656,7 +4861,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657455576,
@@ -3673,7 +4881,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657458765,
@@ -3690,7 +4901,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657459006,
@@ -3707,7 +4921,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -3840,7 +5057,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634839639,
@@ -3860,7 +5080,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634844716,
@@ -3880,7 +5103,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634846662,
@@ -3897,7 +5123,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657466282,
@@ -3914,7 +5143,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657676655,
@@ -3931,7 +5163,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679480,
@@ -3948,7 +5183,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20657679661,
@@ -3965,7 +5203,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -4084,6 +5325,21 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20634373596,
         "event": "connected",
         "created_at": "2025-10-31T13:29:23Z",
@@ -4098,7 +5354,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634377038,
@@ -4118,7 +5377,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634380177,
@@ -4138,7 +5400,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634382613,
@@ -4155,7 +5420,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634399128,
@@ -4172,7 +5440,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "adc974995dc50863b74ab1774abc4c1eb59d72c1",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/adc974995dc50863b74ab1774abc4c1eb59d72c1"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/adc974995dc50863b74ab1774abc4c1eb59d72c1",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634399152,
@@ -4189,7 +5460,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634399466,
@@ -4206,7 +5480,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634400014,
@@ -4223,7 +5500,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -4335,6 +5615,36 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20634046593,
         "event": "connected",
         "created_at": "2025-10-31T13:15:20Z",
@@ -4349,7 +5659,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634049559,
@@ -4369,7 +5682,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634053581,
@@ -4389,7 +5705,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634056223,
@@ -4406,7 +5725,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634076254,
@@ -4423,7 +5745,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "d6a497fcb126c3595adb2afb0348f61b8500ccbd",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/d6a497fcb126c3595adb2afb0348f61b8500ccbd"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/d6a497fcb126c3595adb2afb0348f61b8500ccbd",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634076284,
@@ -4440,7 +5765,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634076736,
@@ -4457,7 +5785,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634077241,
@@ -4474,7 +5805,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -4600,7 +5934,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633979528,
@@ -4620,7 +5957,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634414822,
@@ -4637,7 +5977,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634415837,
@@ -4657,7 +6000,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634425915,
@@ -4674,7 +6020,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635739469,
@@ -4691,7 +6040,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635763566,
@@ -4708,7 +6060,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20635764545,
@@ -4725,7 +6080,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -4858,7 +6216,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633785222,
@@ -4875,7 +6236,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633784898,
@@ -4895,7 +6259,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633836730,
@@ -4912,7 +6279,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633870267,
@@ -4932,7 +6302,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633951560,
@@ -4949,7 +6322,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633992737,
@@ -4969,7 +6345,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634373606,
@@ -4986,7 +6365,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634399433,
@@ -5003,7 +6385,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634400335,
@@ -5020,7 +6405,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -5139,6 +6527,81 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20633724322,
         "event": "connected",
         "created_at": "2025-10-31T12:58:19Z",
@@ -5153,7 +6616,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633727350,
@@ -5173,7 +6639,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633730109,
@@ -5193,7 +6662,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633731914,
@@ -5210,7 +6682,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633742166,
@@ -5227,7 +6702,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "aed6c3001e3e7c7cf799b42ca98e6a68f1de3be2",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/aed6c3001e3e7c7cf799b42ca98e6a68f1de3be2"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/aed6c3001e3e7c7cf799b42ca98e6a68f1de3be2",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633742190,
@@ -5244,7 +6722,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633742760,
@@ -5261,7 +6742,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633743472,
@@ -5278,7 +6762,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -5404,7 +6891,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633275708,
@@ -5421,7 +6911,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633275434,
@@ -5441,7 +6934,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633755163,
@@ -5458,7 +6954,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633869341,
@@ -5478,7 +6977,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634046620,
@@ -5495,7 +6997,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634076583,
@@ -5512,7 +7017,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20634077372,
@@ -5529,7 +7037,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -5662,7 +7173,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633229073,
@@ -5682,7 +7196,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633230714,
@@ -5702,7 +7219,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633233401,
@@ -5719,7 +7239,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633724344,
@@ -5736,7 +7259,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633742493,
@@ -5753,7 +7279,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633743014,
@@ -5770,7 +7299,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -5889,6 +7421,36 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20633043402,
         "event": "connected",
         "created_at": "2025-10-31T12:23:43Z",
@@ -5903,7 +7465,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633068619,
@@ -5923,7 +7488,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633071613,
@@ -5943,7 +7511,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633074468,
@@ -5960,7 +7531,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633086931,
@@ -5977,7 +7551,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "4f645a91cd0ade9d713132b62a17a19d1395d065",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/4f645a91cd0ade9d713132b62a17a19d1395d065"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/4f645a91cd0ade9d713132b62a17a19d1395d065",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633086954,
@@ -5994,7 +7571,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633087458,
@@ -6011,7 +7591,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633088376,
@@ -6028,7 +7611,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -6154,7 +7740,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632815617,
@@ -6174,7 +7763,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633043410,
@@ -6191,7 +7783,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633087250,
@@ -6208,7 +7803,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633088456,
@@ -6225,7 +7823,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633099061,
@@ -6245,7 +7846,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -6378,7 +7982,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632758075,
@@ -6398,7 +8005,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632796016,
@@ -6415,7 +8025,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632795520,
@@ -6432,7 +8045,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633867976,
@@ -6452,7 +8068,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -6578,7 +8197,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632577046,
@@ -6595,7 +8217,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632576182,
@@ -6612,7 +8237,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632576311,
@@ -6632,7 +8260,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633867342,
@@ -6652,7 +8283,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -6778,7 +8412,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632514507,
@@ -6798,7 +8435,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632526640,
@@ -6815,7 +8455,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632526275,
@@ -6832,7 +8475,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633866204,
@@ -6852,7 +8498,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -6981,7 +8630,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632197332,
@@ -6998,7 +8650,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632207416,
@@ -7015,7 +8670,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632207155,
@@ -7032,7 +8690,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632516046,
@@ -7052,7 +8713,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -7164,6 +8828,21 @@
     "draft": false,
     "events": [
       {
+        "event": "committed",
+        "actor": null,
+        "assignee": null,
+        "label": null,
+        "milestone": null,
+        "rename": null,
+        "requested_reviewer": null,
+        "requested_team": null,
+        "commit_id": null,
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
+      },
+      {
         "id": 20632094090,
         "event": "added_to_project_v2",
         "created_at": "2025-10-31T11:35:14Z",
@@ -7178,7 +8857,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632093854,
@@ -7195,7 +8877,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": "be45cc4a7d7324acef7bf372a3ca5b4e4848f102",
-        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/be45cc4a7d7324acef7bf372a3ca5b4e4848f102"
+        "commit_url": "https://api.github.com/repos/YUKIKEDA/github-project-metrics/commits/be45cc4a7d7324acef7bf372a3ca5b4e4848f102",
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632093886,
@@ -7212,7 +8897,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632096102,
@@ -7229,7 +8917,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632121860,
@@ -7246,7 +8937,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633103042,
@@ -7266,7 +8960,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20633864022,
@@ -7286,7 +8983,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -7415,7 +9115,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367168569,
@@ -7432,7 +9135,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367168389,
@@ -7452,7 +9158,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632199523,
@@ -7469,7 +9178,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632198263,
@@ -7486,7 +9198,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632202112,
@@ -7506,7 +9221,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20632202886,
@@ -7526,7 +9244,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
@@ -7688,7 +9409,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367023430,
@@ -7705,7 +9429,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367023215,
@@ -7725,7 +9452,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367023693,
@@ -7742,7 +9472,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       },
       {
         "id": 20367023464,
@@ -7759,7 +9492,10 @@
         "requested_reviewer": null,
         "requested_team": null,
         "commit_id": null,
-        "commit_url": null
+        "commit_url": null,
+        "project_card": null,
+        "project_item": null,
+        "changes": null
       }
     ],
     "projects": [
