@@ -31792,42 +31792,57 @@ async function getAllIssues() {
     const issuesWithEvents = await Promise.all(
       allIssues.map(async (issue) => {
         try {
-          // Issueのイベントを取得
-          const allEvents = [];
-          let eventPage = 1;
           const eventsPerPage = 100;
-          
-          // Issueイベントを取得（issues.listEvents）
-          while (true) {
-            try {
-              const { data: events } = await octokit.rest.issues.listEvents({
+
+          const fetchEventsWithPagination = async (fetcher) => {
+            const aggregated = [];
+            let page = 1;
+            while (true) {
+              const response = await fetcher(page);
+              const events = Array.isArray(response?.data) ? response.data : [];
+              if (events.length === 0) {
+                break;
+              }
+              aggregated.push(...events);
+              if (events.length < eventsPerPage) {
+                break;
+              }
+              page++;
+            }
+            return aggregated;
+          };
+
+          let allEvents = [];
+          let timelineFetchFailed = false;
+
+          try {
+            allEvents = await fetchEventsWithPagination((page) =>
+              octokit.rest.issues.listEventsForTimeline({
                 owner,
                 repo,
                 issue_number: issue.number,
                 per_page: eventsPerPage,
-                page: eventPage
-              });
-              
-              if (events.length === 0) {
-                break;
-              }
-              
-              allEvents.push(...events);
-              
-              if (events.length < eventsPerPage) {
-                break;
-              }
-              
-              eventPage++;
-            } catch (eventError) {
-              // プルリクエストの場合はイベント取得が失敗する可能性があるため、エラーを無視
-              if (eventError.status === 404) {
-                coreExports.warning(`Issue #${issue.number} のイベントを取得できませんでした（404エラー）`);
-              } else {
-                coreExports.warning(`Issue #${issue.number} のイベント取得中にエラー: ${eventError.message}`);
-              }
-              break;
-            }
+                page,
+                mediaType: {
+                  previews: ["mockingbird"],
+                },
+              })
+            );
+          } catch (timelineError) {
+            timelineFetchFailed = true;
+            coreExports.warning(`Issue #${issue.number} のタイムラインイベント取得に失敗: ${timelineError.message}. listEventsで再試行します。`);
+          }
+
+          if (timelineFetchFailed) {
+            allEvents = await fetchEventsWithPagination((page) =>
+              octokit.rest.issues.listEvents({
+                owner,
+                repo,
+                issue_number: issue.number,
+                per_page: eventsPerPage,
+                page,
+              })
+            );
           }
           
           // イベント取得結果をログ出力（デバッグ用）
@@ -31892,6 +31907,52 @@ async function getAllIssues() {
       events: events.length > 0 ? events.map(event => {
         // @ts-ignore - GitHub APIのイベントオブジェクトは動的なプロパティを持つ
         const eventAny = /** @type {any} */ (event);
+        const normalizeStatus = (status) => {
+          if (!status) {
+            return null;
+          }
+          if (typeof status === "string") {
+            return {
+              name: status,
+              title: status,
+              type: null
+            };
+          }
+          return {
+            name: typeof status.name === "string" ? status.name : (typeof status.title === "string" ? status.title : null),
+            title: typeof status.title === "string" ? status.title : (typeof status.name === "string" ? status.name : null),
+            type: typeof status.type === "string" ? status.type : null
+          };
+        };
+
+        const projectCard = eventAny.project_card ? {
+          project_id: typeof eventAny.project_card.project_id === "number" ? eventAny.project_card.project_id : null,
+          project_node_id: typeof eventAny.project_card.project_node_id === "string" ? eventAny.project_card.project_node_id : null,
+          column_name: typeof eventAny.project_card.column_name === "string" ? eventAny.project_card.column_name : null,
+          previous_column_name: typeof eventAny.project_card.previous_column_name === "string" ? eventAny.project_card.previous_column_name : null,
+          column_id: typeof eventAny.project_card.column_id === "number" ? eventAny.project_card.column_id : null
+        } : null;
+
+        const projectItem = eventAny.project_item ? {
+          id: typeof eventAny.project_item.id === "string" ? eventAny.project_item.id : null,
+          project_node_id: typeof eventAny.project_item.project_node_id === "string" ? eventAny.project_item.project_node_id : null,
+          previous_status: normalizeStatus(eventAny.project_item.previous_status || eventAny.project_item.old_status),
+          status: normalizeStatus(eventAny.project_item.status || eventAny.project_item.new_status || eventAny.project_item.current_status)
+        } : null;
+
+        let changes = null;
+        if (eventAny.changes) {
+          try {
+            changes = JSON.parse(JSON.stringify(eventAny.changes));
+          } catch (cloneError) {
+            const debugMessage = cloneError instanceof Error ? cloneError.message : String(cloneError);
+            if (typeof coreExports.debug === "function") {
+              coreExports.debug(`Issue event changes のクローンに失敗: ${debugMessage}`);
+            }
+            changes = eventAny.changes;
+          }
+        }
+
         return {
           id: event.id,
           event: /** @type {IssueEventType} */ (event.event),
@@ -31924,7 +31985,10 @@ async function getAllIssues() {
             id: eventAny.requested_team.id
           } : null,
           commit_id: eventAny.commit_id || null,
-          commit_url: eventAny.commit_url || null
+          commit_url: eventAny.commit_url || null,
+          project_card: projectCard,
+          project_item: projectItem,
+          changes
         };
       }) : [],
       projects: [] // 後でProject情報をマージする
