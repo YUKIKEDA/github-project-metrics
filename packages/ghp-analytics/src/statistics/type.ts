@@ -125,3 +125,26 @@ export interface IssueMetricsAnomalyResult {
   baselineStatistics: IssueMetricsStatistics;
   metrics: Record<MetricKey, MetricAnomalySummary>;
 }
+
+/** 相関分析に関する型定義。 */
+export interface MetricCorrelationCell {
+  metrics: [MetricKey, MetricKey];
+  method: 'pearson' | 'spearman';
+  coefficient: number | null;
+  sampleSize: number;
+  covariance: number | null;
+  significance?: {
+    pValue?: number | null;
+  };
+}
+
+export interface MetricCorrelationMatrix {
+  method: 'pearson' | 'spearman';
+  summary: MetricCorrelationCell[];
+  matrix: Record<MetricKey, Record<MetricKey, MetricCorrelationCell>>;
+}
+
+export interface MetricCorrelationAnalysis {
+  pearson: MetricCorrelationMatrix;
+  spearman: MetricCorrelationMatrix;
+}
