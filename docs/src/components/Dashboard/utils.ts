@@ -8,6 +8,7 @@ import type {
   PeriodOption,
   MetricInfo,
 } from './types';
+import jStat from 'jstat';
 
 // メトリクス情報の定義
 export const METRICS: Record<MetricKey, MetricInfo> = {
@@ -667,28 +668,16 @@ function matrixInverse(matrix: number[][]): number[][] | null {
 }
 
 /**
- * t分布の累積分布関数（近似）
+ * t分布の累積分布関数（jStatを使用）
  */
 function tDistributionCDF(t: number, df: number): number {
-  // 簡易的な近似
-  const x = df / (df + t * t);
-  return 1 - 0.5 * incompleteBeta(x, df / 2, 0.5);
+  return jStat.studentt.cdf(t, df);
 }
 
 /**
- * F分布の累積分布関数（近似）
+ * F分布の累積分布関数（jStatを使用）
  */
 function fDistributionCDF(f: number, d1: number, d2: number): number {
-  const x = d2 / (d2 + d1 * f);
-  return 1 - incompleteBeta(x, d2 / 2, d1 / 2);
+  return jStat.centralF.cdf(f, d1, d2);
 }
 
-/**
- * 不完全ベータ関数（簡易近似）
- */
-function incompleteBeta(x: number, a: number, b: number): number {
-  if (x <= 0) return 0;
-  if (x >= 1) return 1;
-  // 簡易的な近似（正確ではないが、p値の大まかな目安として使用）
-  return Math.pow(x, a) * Math.pow(1 - x, b) / (a + b);
-}
