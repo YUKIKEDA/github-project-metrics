@@ -23,5 +23,15 @@ jobs:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           project-scope: "user"  # user または organization
           # organization-name: "YUKIKEDA"  # organizationスコープの場合に指定
+          output-path: metrics-output
+
+      - name: Upload metrics artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: repository-metrics
+          path: |
+            metrics-output/issues.json
+            metrics-output/statistics.json
+          if-no-files-found: warn
 
       # 結果はSummaryセクションに自動的に表示されます

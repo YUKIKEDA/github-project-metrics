@@ -23,6 +23,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Generate dashboard dataset
+        uses: ./
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          project-scope: "user"
+          output-path: metrics-output
+
+      - name: Copy issues data into docs
+        run: |
+          cp metrics-output/issues.json docs/static/data/issues.json
+
+      - name: Copy statistics data into docs (if exists)
+        run: |
+          if [ -f metrics-output/statistics.json ]; then
+            cp metrics-output/statistics.json docs/static/data/statistics.json
+          else
+            echo "statistics.json not found; skipping"
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

@@ -472,6 +472,7 @@ declare global {
     anomalies: Anomalies;
     correlations: Correlations;
   }
+
 }
 
 export {};
