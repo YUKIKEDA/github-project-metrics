@@ -14,8 +14,8 @@
     "lib": ["ES2022"],
     // 出力するモジュール形式を指定
     "module": "ESNext",
-    // モジュール解決方法を node 互換に設定
-    "moduleResolution": "node",
+    // モジュール解決方法を bundler に設定
+    "moduleResolution": "bundler",
     // 使われていないローカル変数をエラーとする
     "noUnusedLocals": true,
     // 使われていない関数引数をエラーとする

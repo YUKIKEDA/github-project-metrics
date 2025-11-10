@@ -8,5 +8,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "dev": "tsc --watch --project tsconfig.json"
+  },
+  "dependencies": {
+    "ml-array-max": "^1.2.4"
   }
 }
