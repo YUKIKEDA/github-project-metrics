@@ -11,4 +11,3 @@ describe("main", () => {
     consoleSpy.mockRestore();
   });
 });
-

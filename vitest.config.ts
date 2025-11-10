@@ -12,8 +12,7 @@ export default defineConfig({
       // 生成するレポート形式。コンソール用の text と HTML を出力
       reporter: ["text", "html"],
       // カバレッジ集計から除外するパス
-      exclude: ["dist", "pnpm-lock.yaml"]
-    }
-  }
+      exclude: ["dist", "pnpm-lock.yaml"],
+    },
+  },
 });
-

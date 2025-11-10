@@ -7,6 +7,10 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "dev": "tsc --watch --project tsconfig.json",
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write",
+    "format": "biome format .",
+    "format:fix": "biome format . --write",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "coverage": "vitest run --coverage"
@@ -17,6 +21,7 @@
   "type": "module",
   "packageManager": "pnpm@9.12.1+sha256.91452fdfa46234ae447d46d5c4fc4e7e0a7058f90495c4b6f77f8beebbb154e3",
   "devDependencies": {
+    "@biomejs/biome": "2.3.4",
     "@types/node": "^24.10.0",
     "@vitest/coverage-v8": "^4.0.8",
     "typescript": "^5.9.3",
