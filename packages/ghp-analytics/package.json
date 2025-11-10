@@ -21,6 +21,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "ml-regression-multivariate-linear": "^2.0.4",
     "simple-statistics": "^7.8.8"
   }
 }

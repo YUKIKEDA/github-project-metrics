@@ -197,7 +197,6 @@ function gatherPairedSamples(vectorA: number[], vectorB: number[]): Array<[numbe
 
   return pairs;
 }
-
 /**
  * ピアソン相関係数を算出する。
  *
@@ -248,3 +247,4 @@ function sampleCovariance(valuesA: number[], valuesB: number[]): number | null {
   const result = ssSampleCovariance(valuesA, valuesB);
   return Number.isNaN(result) ? null : result;
 }
+

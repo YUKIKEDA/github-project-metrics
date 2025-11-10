@@ -215,7 +215,7 @@ function computeMetricStatistics(
  * @param values 対象値
  * @returns 平均値。計算不可の場合は null
  */
-function computeMean(values: number[]): number | null {
+export function computeMean(values: number[]): number | null {
   if (values.length === 0) {
     return null;
   }
@@ -230,7 +230,7 @@ function computeMean(values: number[]): number | null {
  * @param mean 既算出の平均値（長さチェックのために使用）
  * @returns 標本分散。計算不可の場合は null
  */
-function computeSampleVariance(values: number[], mean: number | null): number | null {
+export function computeSampleVariance(values: number[], mean: number | null): number | null {
   if (values.length < 2 || mean === null) {
     return null;
   }
@@ -244,7 +244,7 @@ function computeSampleVariance(values: number[], mean: number | null): number | 
  * @param values 対象値
  * @returns 標本標準偏差。計算不可の場合は null
  */
-function computeStandardDeviation(values: number[]): number | null {
+export function computeStandardDeviation(values: number[]): number | null {
   if (values.length < 2) {
     return null;
   }

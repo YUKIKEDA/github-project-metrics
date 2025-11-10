@@ -148,3 +148,35 @@ export interface MetricCorrelationAnalysis {
   pearson: MetricCorrelationMatrix;
   spearman: MetricCorrelationMatrix;
 }
+
+/** 重回帰分析の設定。 */
+export interface RegressionConfig {
+  target: MetricKey;
+  predictors: MetricKey[];
+  includeIntercept?: boolean;
+}
+
+/** 重回帰分析の結果。 */
+export interface RegressionSummary {
+  config: RegressionConfig;
+  sampleSize: number;
+  coefficients: Partial<Record<MetricKey | 'intercept', number>>;
+  rSquared: number | null;
+  adjustedRSquared: number | null;
+  residualStandardError: number | null;
+  residuals: {
+    mean: number | null;
+    variance: number | null;
+    standardDeviation: number | null;
+    min: number | null;
+    max: number | null;
+  };
+}
+
+export interface RegressionAnalysisResult {
+  summary: RegressionSummary;
+  diagnostics: {
+    predictorCorrelations?: MetricCorrelationMatrix;
+    conditionNumber?: number | null;
+  };
+}
