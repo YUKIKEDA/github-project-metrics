@@ -24,6 +24,8 @@ importers:
         specifier: ^4.0.8
         version: 4.0.8(@types/node@24.10.0)
 
+  packages/ghpm-statistics: {}
+
 packages:
 
   '@babel/helper-string-parser@7.27.1':

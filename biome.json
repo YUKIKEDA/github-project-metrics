@@ -3,9 +3,9 @@
   "files": {
     "includes": [
       "**/*",
-      "!node_modules/**",
-      "!dist/**",
-      "!coverage/**",
+      "!node_modules",
+      "!dist",
+      "!coverage",
       "!**/*.min.js",
       "!pnpm-lock.yaml"
     ]
