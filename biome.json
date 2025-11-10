@@ -1,14 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
   "files": {
-    "includes": [
-      "**/*",
-      "!node_modules",
-      "!dist",
-      "!coverage",
-      "!**/*.min.js",
-      "!pnpm-lock.yaml"
-    ]
+    "includes": ["**/*", "!node_modules", "!dist", "!coverage", "!**/*.min.js", "!pnpm-lock.yaml"]
   },
   "assist": {
     "enabled": true,

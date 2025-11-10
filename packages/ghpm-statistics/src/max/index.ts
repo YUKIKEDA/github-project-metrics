@@ -1,4 +1,4 @@
-import arrayMax from 'ml-array-max';
+import arrayMax from "ml-array-max";
 
 export interface MaxOptions {
   fromIndex?: number;
