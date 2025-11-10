@@ -1,0 +1,40 @@
+{
+  // tsconfig のスキーマ定義を指定して VS Code などで補完を有効化
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    // import/export で既定エクスポートがなくても default import を許可
+    "allowSyntheticDefaultImports": true,
+    // CommonJS モジュールとの相互運用性を高める
+    "esModuleInterop": true,
+    // ファイル名の大文字・小文字の一貫性を強制
+    "forceConsistentCasingInFileNames": true,
+    // 各ファイルが独立してコンパイルされるように強制
+    "isolatedModules": true,
+    // 利用する ECMAScript 標準ライブラリを指定
+    "lib": ["ES2022"],
+    // 出力するモジュール形式を指定
+    "module": "ESNext",
+    // モジュール解決方法を node 互換に設定
+    "moduleResolution": "node",
+    // 使われていないローカル変数をエラーとする
+    "noUnusedLocals": true,
+    // 使われていない関数引数をエラーとする
+    "noUnusedParameters": true,
+    // コンパイル結果の出力ディレクトリ
+    "outDir": "dist",
+    // ソースコードのルートディレクトリ
+    "rootDir": "src",
+    // 型定義ファイルの整合性チェックを省略してビルドを高速化
+    "skipLibCheck": true,
+    // ソースマップファイルを出力
+    "sourceMap": true,
+    // TypeScript の厳格モードを有効化
+    "strict": true,
+    // トランスパイル時のターゲット ECMAScript バージョン
+    "target": "ES2022"
+  },
+  // コンパイル対象のファイルパターン
+  "include": ["src"],
+  // コンパイルから除外するディレクトリ
+  "exclude": ["node_modules", "dist", "coverage"]
+}
