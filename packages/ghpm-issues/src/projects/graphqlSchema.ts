@@ -60,12 +60,15 @@ const PROJECT_V2_SELECTION = `
       nodes {
         # フィールドの具体的な型
         __typename
-        # フィールドの一意識別子
-        id
-        # フィールドの表示名
-        name
-        # フィールドのデータ型
-        dataType
+        # すべての Node で共通の ID を取得
+        ... on Node {
+          id
+        }
+        # フィールド共通の情報を取得
+        ... on ProjectV2Field {
+          name
+          dataType
+        }
         # Single Select フィールドに固有の情報
         ... on ProjectV2SingleSelectField {
           # Single Select の選択肢一覧
@@ -84,23 +87,25 @@ const PROJECT_V2_SELECTION = `
         ... on ProjectV2IterationField {
           # Iteration の設定値
           configuration {
-            # 1 イテレーションの期間（日数）
-            duration
-            # 週の開始曜日（1=Monday）
-            startDay
-          }
-          # 設定済みイテレーションの一覧
-          iterations(first: $fieldIterationPageSize) {
-            # イテレーションごとのノード
-            nodes {
-              # イテレーションの一意識別子
-              id
-              # イテレーションのタイトル
-              title
-              # イテレーションの開始日
-              startDate
-              # イテレーションの期間（日数）
+            # 具体的な設定型
+            __typename
+            # 標準的な Iteration 設定
+            ... on ProjectV2IterationFieldConfiguration {
+              # 1 イテレーションの期間（日数）
               duration
+              # 週の開始曜日（1=Monday）
+              startDay
+              # 設定済みイテレーションの一覧
+              iterations {
+                # イテレーションごとのノード
+                id
+                # イテレーションのタイトル
+                title
+                # イテレーションの開始日
+                startDate
+                # イテレーションの期間（日数）
+                duration
+              }
             }
           }
         }
@@ -250,20 +255,35 @@ const PROJECT_V2_SELECTION = `
           nodes {
             # フィールド値の具体的な型
             __typename
-            # 対応するフィールドの基本情報
-            field {
-              # フィールドの一意識別子
-              id
-              # フィールドの名称
-              name
-            }
             # 日付フィールド値の場合
             ... on ProjectV2ItemFieldDateValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 設定されている日付
               date
             }
             # イテレーションフィールド値の場合
             ... on ProjectV2ItemFieldIterationValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 対応するイテレーションの ID
               iterationId
               # イテレーションのタイトル
@@ -275,6 +295,17 @@ const PROJECT_V2_SELECTION = `
             }
             # ラベルフィールド値の場合
             ... on ProjectV2ItemFieldLabelValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # ラベルをページング取得
               labels(first: $fieldLabelPageSize) {
                 # ラベル情報のノード
@@ -292,6 +323,17 @@ const PROJECT_V2_SELECTION = `
             }
             # マイルストーンフィールド値の場合
             ... on ProjectV2ItemFieldMilestoneValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 紐づくマイルストーンの情報
               milestone {
                 # マイルストーンの一意識別子
@@ -310,11 +352,33 @@ const PROJECT_V2_SELECTION = `
             }
             # 数値フィールド値の場合
             ... on ProjectV2ItemFieldNumberValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 設定された数値
               number
             }
             # PullRequest フィールド値の場合
             ... on ProjectV2ItemFieldPullRequestValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 紐づく PullRequest の一覧
               pullRequests(first: 10) {
                 # PullRequest 情報のノード
@@ -334,23 +398,42 @@ const PROJECT_V2_SELECTION = `
             }
             # リポジトリフィールド値の場合
             ... on ProjectV2ItemFieldRepositoryValue {
-              # 紐づくリポジトリの一覧
-              repositories(first: 10) {
-                # リポジトリ情報のノード
-                nodes {
-                  # リポジトリの一意識別子
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
                   id
-                  # リポジトリ名
-                  name
-                  # owner/name 形式の表記
-                  nameWithOwner
-                  # リポジトリの URL
-                  url
                 }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
+              # 紐づくリポジトリ
+              repository {
+                # リポジトリの一意識別子
+                id
+                # リポジトリ名
+                name
+                # owner/name 形式の表記
+                nameWithOwner
+                # リポジトリの URL
+                url
               }
             }
             # Single Select フィールド値の場合
             ... on ProjectV2ItemFieldSingleSelectValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 選択されたオプションの ID
               optionId
               # 選択されたオプション名
@@ -358,11 +441,33 @@ const PROJECT_V2_SELECTION = `
             }
             # テキストフィールド値の場合
             ... on ProjectV2ItemFieldTextValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 設定されたテキスト
               text
             }
             # ユーザーフィールド値の場合
             ... on ProjectV2ItemFieldUserValue {
+              # 対応するフィールドの基本情報
+              field {
+                __typename
+                ... on Node {
+                  id
+                }
+                ... on ProjectV2Field {
+                  name
+                  dataType
+                }
+              }
               # 紐づくユーザーの一覧
               users(first: $fieldUserPageSize) {
                 # ユーザー情報のノード
@@ -407,8 +512,6 @@ export const ORGANIZATION_PROJECT_V2_GRAPHQL = /* GraphQL */ `
     $fieldLabelPageSize: Int = 20
     # ユーザー取得用のページサイズ（デフォルト 20）
     $fieldUserPageSize: Int = 20
-    # イテレーション取得用のページサイズ（デフォルト 20）
-    $fieldIterationPageSize: Int = 20
   ) {
     # 組織情報とそのプロジェクトを取得
     organization(login: $organization) {
@@ -438,8 +541,6 @@ export const USER_PROJECT_V2_GRAPHQL = /* GraphQL */ `
     $fieldLabelPageSize: Int = 20
     # ユーザー取得用のページサイズ（デフォルト 20）
     $fieldUserPageSize: Int = 20
-    # イテレーション取得用のページサイズ（デフォルト 20）
-    $fieldIterationPageSize: Int = 20
   ) {
     # ユーザー情報とそのプロジェクトを取得
     user(login: $user) {
@@ -481,10 +582,6 @@ export interface OrganizationProjectV2QueryVariables {
    * ユーザー情報を取得する際のページサイズ。
    */
   fieldUserPageSize?: number;
-  /**
-   * イテレーションフィールド設定を取得する際のページサイズ。
-   */
-  fieldIterationPageSize?: number;
 }
 
 /**
@@ -519,8 +616,4 @@ export interface UserProjectV2QueryVariables {
    * ユーザー情報を取得する際のページサイズ。
    */
   fieldUserPageSize?: number;
-  /**
-   * イテレーションフィールド設定を取得する際のページサイズ。
-   */
-  fieldIterationPageSize?: number;
 }

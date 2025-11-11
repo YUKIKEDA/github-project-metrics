@@ -22,7 +22,6 @@ export async function fetchAllProjectData(context: GitHubGraphQLContext): Promis
     fieldValuesPageSize: pagination?.fieldValuesPageSize ?? 20,
     fieldLabelPageSize: pagination?.fieldLabelPageSize ?? 20,
     fieldUserPageSize: pagination?.fieldUserPageSize ?? 20,
-    fieldIterationPageSize: pagination?.fieldIterationPageSize ?? 20,
   };
 
   const aggregateItems: ProjectV2Item[] = [];

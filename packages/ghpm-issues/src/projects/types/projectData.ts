@@ -71,10 +71,17 @@ export interface ProjectV2SingleSelectField extends ProjectV2FieldBase {
 /**
  * イテレーション設定。
  */
-export interface ProjectV2IterationConfiguration {
-  duration: number | null;
-  startDay: number | null;
-}
+export type ProjectV2IterationConfiguration =
+  | {
+      __typename: "ProjectV2IterationFieldConfiguration";
+      duration: number | null;
+      startDay: number | null;
+      iterations: ProjectV2Iteration[];
+    }
+  | {
+      __typename: string;
+      [key: string]: unknown;
+    };
 
 /**
  * イテレーションの個別情報。
@@ -92,9 +99,6 @@ export interface ProjectV2Iteration {
 export interface ProjectV2IterationField extends ProjectV2FieldBase {
   __typename: "ProjectV2IterationField";
   configuration: ProjectV2IterationConfiguration | null;
-  iterations: {
-    nodes: ProjectV2Iteration[];
-  };
 }
 
 /**
@@ -255,9 +259,7 @@ export type ProjectV2ItemFieldValue =
   | {
       __typename: "ProjectV2ItemFieldRepositoryValue";
       field: ProjectV2FieldBase;
-      repositories: {
-        nodes: RepositorySummary[];
-      };
+      repository: RepositorySummary | null;
     }
   | {
       __typename: "ProjectV2ItemFieldSingleSelectValue";

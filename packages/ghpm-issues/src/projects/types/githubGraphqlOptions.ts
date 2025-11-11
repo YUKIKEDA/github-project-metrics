@@ -23,10 +23,6 @@ export interface GitHubGraphQLPaginationOptions {
    * ユーザー取得時のページサイズ。
    */
   fieldUserPageSize?: number;
-  /**
-   * イテレーション取得時のページサイズ。
-   */
-  fieldIterationPageSize?: number;
 }
 
 /**

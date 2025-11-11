@@ -1,3 +1,7 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Octokit } from "@octokit/rest";
+import { config as loadEnv } from "dotenv";
 import { describe, expect, it, vi } from "vitest";
 import { ORGANIZATION_PROJECT_V2_GRAPHQL, USER_PROJECT_V2_GRAPHQL } from "./graphqlSchema";
 import { fetchAllProjectData } from "./index";
@@ -9,6 +13,8 @@ import type {
   ProjectV2Item,
   UserProjectV2Data,
 } from "./types/projectData";
+
+loadEnv();
 
 function createItem(id: string): ProjectV2Item {
   return {
@@ -100,7 +106,6 @@ describe("fetchAllProjectData", () => {
           fieldValuesPageSize: 5,
           fieldLabelPageSize: 6,
           fieldUserPageSize: 7,
-          fieldIterationPageSize: 8,
         },
       },
     };
@@ -119,7 +124,6 @@ describe("fetchAllProjectData", () => {
         fieldValuesPageSize: 5,
         fieldLabelPageSize: 6,
         fieldUserPageSize: 7,
-        fieldIterationPageSize: 8,
       }),
     );
     expect(graphqlMock).toHaveBeenNthCalledWith(
@@ -176,4 +180,44 @@ describe("fetchAllProjectData", () => {
     expect(result.login).toBe("alice");
     expect(result.projectNumber).toBe(42);
   });
+});
+
+describe("fetchAllProjectData (integration)", () => {
+  it("実プロジェクトからデータを取得できる", async () => {
+    const token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+
+    if (!token) {
+      throw new Error("GITHUB_PERSONAL_ACCESS_TOKEN が設定されていません。");
+    }
+
+    const client = new Octokit({ auth: token });
+
+    const context: GitHubGraphQLContext = {
+      client,
+      options: {
+        ownerType: "User",
+        login: "YUKIKEDA",
+        projectNumber: 8,
+      },
+    };
+
+    const result = await fetchAllProjectData(context);
+
+    expect(result.ownerType).toBe("User");
+    expect(result.login).toBe("YUKIKEDA");
+    expect(result.projectNumber).toBe(8);
+    expect(result.project).not.toBeNull();
+    expect(result.project?.items.nodes?.length ?? 0).toBeGreaterThan(0);
+    expect(result.project?.items.nodes?.every((item) => item && typeof item.id === "string")).toBe(
+      true,
+    );
+
+    const debugDir = join(process.cwd(), "tmp");
+    mkdirSync(debugDir, { recursive: true });
+    writeFileSync(
+      join(debugDir, "fetchAllProjectData.integration.json"),
+      JSON.stringify(result, null, 2),
+      "utf-8",
+    );
+  }, 30_000);
 });
