@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3"
   }
 }
