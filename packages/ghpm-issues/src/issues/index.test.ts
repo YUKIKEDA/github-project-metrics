@@ -1,8 +1,11 @@
-import type { Octokit } from "@octokit/rest";
+import { Octokit, type Octokit as OctokitType } from "@octokit/rest";
+import { config as loadEnv } from "dotenv";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchAllIssues } from "./index.js";
 import type { GitHubApiContext } from "./types/githubApiContext.js";
 import type { ResponseIssue } from "./types/responseIssue.js";
+
+loadEnv();
 
 const defaultRepository: GitHubApiContext["options"]["repository"] = {
   owner: "acme",
@@ -42,7 +45,7 @@ function createContext(
     issues: {
       listForRepo: vi.fn(),
     },
-  } as unknown as Octokit;
+  } as unknown as OctokitType;
 
   const repository = options.repository ?? { ...defaultRepository };
   const pagination = options.pagination;
@@ -107,4 +110,34 @@ describe("fetchAllIssues", () => {
 
     expect(consumedPageIndices).toEqual([0, 1]);
   });
+});
+
+describe("fetchAllIssues (integration)", () => {
+  it("実リポジトリから issue を取得できる", async () => {
+    const token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+
+    if (!token) {
+      throw new Error("GITHUB_PERSONAL_ACCESS_TOKEN が設定されていません。");
+    }
+
+    const client = new Octokit({
+      auth: token,
+    });
+
+    const context: GitHubApiContext = {
+      client,
+      options: {
+        repository: {
+          owner: "YUKIKEDA",
+          repo: "github-project-metrics",
+        },
+      },
+    };
+
+    const issues = await fetchAllIssues(context);
+
+    expect(Array.isArray(issues)).toBe(true);
+    expect(issues.length).toBeGreaterThan(0);
+    expect(issues.every((issue) => typeof issue.id === "number")).toBe(true);
+  }, 30_000);
 });
