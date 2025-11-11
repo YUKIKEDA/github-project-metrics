@@ -1,5 +1,11 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Octokit } from "@octokit/rest";
+import { config as loadEnv } from "dotenv";
 import { describe, expect, it } from "vitest";
+import { fetchAllIssues } from "../issues/index.js";
 import type { ResponseIssue } from "../issues/types/responseIssue";
+import { fetchAllProjectData } from "../projects/index";
 import type {
   ProjectData,
   ProjectV2Issue,
@@ -7,6 +13,8 @@ import type {
   ProjectV2PullRequest,
 } from "../projects/types/projectData";
 import { combineIssuesWithProject } from "./index";
+
+loadEnv();
 
 const iso = "2024-01-01T00:00:00Z";
 
@@ -101,6 +109,21 @@ const createRestIssue = (number: number, overrides: Record<string, unknown> = {}
     ...overrides,
   }) as ResponseIssue;
 
+function isProjectItemForRepository(
+  item: ProjectV2Item,
+  repositoryNameWithOwner: string,
+): item is ProjectV2Item & {
+  content: ProjectV2Issue | ProjectV2PullRequest;
+} {
+  const content = item.content;
+
+  return (
+    !!content &&
+    (content.__typename === "Issue" || content.__typename === "PullRequest") &&
+    content.repository.nameWithOwner === repositoryNameWithOwner
+  );
+}
+
 describe("combineIssuesWithProject", () => {
   it("Issue と Projects v2 の Issue アイテムを結合する", () => {
     const issues = [createRestIssue(101), createRestIssue(102)];
@@ -159,4 +182,78 @@ describe("combineIssuesWithProject", () => {
       },
     ]);
   });
+});
+
+describe("combineIssuesWithProject (integration)", () => {
+  it("実際の Issue と Projects v2 アイテムを結合できる", async () => {
+    const token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+
+    if (!token) {
+      throw new Error("GITHUB_PERSONAL_ACCESS_TOKEN が設定されていません。");
+    }
+
+    const client = new Octokit({ auth: token });
+
+    const repositoryOptions = {
+      owner: "YUKIKEDA",
+      repo: "github-project-metrics",
+    } as const;
+    const repositoryNameWithOwner = `${repositoryOptions.owner}/${repositoryOptions.repo}`;
+
+    const issues = await fetchAllIssues({
+      client,
+      options: {
+        repository: {
+          owner: repositoryOptions.owner,
+          repo: repositoryOptions.repo,
+        },
+      },
+    });
+
+    const projectData = await fetchAllProjectData({
+      client,
+      options: {
+        ownerType: "User",
+        login: "YUKIKEDA",
+        projectNumber: 8,
+      },
+    });
+
+    if (!projectData.project) {
+      throw new Error("指定した Projects v2 が取得できませんでした。");
+    }
+
+    const combined = combineIssuesWithProject(issues, projectData);
+
+    expect(combined).toHaveLength(issues.length);
+
+    const projectItems = projectData.project.items.nodes.filter((item) =>
+      isProjectItemForRepository(item, repositoryNameWithOwner),
+    );
+
+    const projectNumbers = new Set(projectItems.map((item) => item.content.number));
+    const issueNumbers = new Set(issues.map((issue) => issue.number));
+
+    const matchedNumbers = [...projectNumbers].filter((number) => issueNumbers.has(number));
+
+    expect(matchedNumbers.length).toBeGreaterThan(0);
+
+    for (const number of matchedNumbers) {
+      const entry = combined.find((item) => item.issue.number === number);
+      expect(entry?.projects).not.toBeNull();
+      const content = entry?.projects?.content;
+      if (!content || (content.__typename !== "Issue" && content.__typename !== "PullRequest")) {
+        throw new Error("結合結果の Project コンテンツが期待した形式ではありません。");
+      }
+      expect(content.number).toBe(number);
+    }
+
+    const debugDir = join(process.cwd(), "tmp");
+    mkdirSync(debugDir, { recursive: true });
+    writeFileSync(
+      join(debugDir, "combineIssuesWithProject.integration.json"),
+      JSON.stringify(combined, null, 2),
+      "utf-8",
+    );
+  }, 30_000);
 });
