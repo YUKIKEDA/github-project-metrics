@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { Octokit, type Octokit as OctokitType } from "@octokit/rest";
 import { config as loadEnv } from "dotenv";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -139,5 +141,13 @@ describe("fetchAllIssues (integration)", () => {
     expect(Array.isArray(issues)).toBe(true);
     expect(issues.length).toBeGreaterThan(0);
     expect(issues.every((issue) => typeof issue.id === "number")).toBe(true);
+
+    const debugDir = join(process.cwd(), "tmp");
+    mkdirSync(debugDir, { recursive: true });
+    writeFileSync(
+      join(debugDir, "fetchAllIssues.integration.json"),
+      JSON.stringify(issues, null, 2),
+      "utf-8",
+    );
   }, 30_000);
 });
