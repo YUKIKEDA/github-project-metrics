@@ -37,6 +37,19 @@ importers:
         specifier: ^17.2.3
         version: 17.2.3
 
+  packages/ghpm-metrics:
+    dependencies:
+      '@github-project-metrics/ghpm-issues':
+        specifier: workspace:*
+        version: link:../ghpm-issues
+    devDependencies:
+      '@octokit/rest':
+        specifier: ^22.0.1
+        version: 22.0.1
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+
   packages/ghpm-statistics:
     dependencies:
       ml-array-max:

@@ -11,5 +11,9 @@
   },
   "dependencies": {
     "@github-project-metrics/ghpm-issues": "workspace:*"
+  },
+  "devDependencies": {
+    "@octokit/rest": "^22.0.1",
+    "dotenv": "^17.2.3"
   }
 }

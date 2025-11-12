@@ -1,6 +1,17 @@
-import { describe, expect, it } from "vitest";
-import { createIssueMetrics } from "./index";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Octokit } from "@octokit/rest";
+import { config as loadEnv } from "dotenv";
 import type { CombinedIssue } from "@github-project-metrics/ghpm-issues";
+import { describe, expect, it } from "vitest";
+import { combineIssuesWithProject } from "../../ghpm-issues/src/combinedIssue/index.js";
+import { fetchIssuesWithEvents } from "../../ghpm-issues/src/issueEvent/index.js";
+import { fetchAllIssues } from "../../ghpm-issues/src/issues/index.js";
+import type { GitHubApiContext } from "../../ghpm-issues/src/issues/types/githubApiContext.js";
+import { fetchAllProjectData } from "../../ghpm-issues/src/projects/index.js";
+import { createIssueMetrics } from "./index";
+
+loadEnv();
 
 function createCombinedIssue(overrides: Partial<CombinedIssue> = {}): CombinedIssue {
   const baseIssue = {
@@ -218,5 +229,77 @@ describe("createIssueMetrics", () => {
       },
     ]);
   });
+});
+
+describe("createIssueMetrics (integration)", () => {
+  it("実際の Issue や Project からメトリクスを生成する", async () => {
+    const token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
+
+    if (!token) {
+      throw new Error("GITHUB_PERSONAL_ACCESS_TOKEN が設定されていません。");
+    }
+
+    const client = new Octokit({ auth: token });
+    const repositoryOptions = {
+      owner: "YUKIKEDA",
+      repo: "github-project-metrics",
+    } as const;
+
+    const context = {
+      client,
+      options: {
+        repository: {
+          owner: repositoryOptions.owner,
+          repo: repositoryOptions.repo,
+        },
+      },
+    } satisfies GitHubApiContext;
+
+    const issues = await fetchAllIssues(context);
+    const issuesWithEvents = await fetchIssuesWithEvents(context, issues);
+    const projectData = await fetchAllProjectData({
+      client,
+      options: {
+        ownerType: "User",
+        login: "YUKIKEDA",
+        projectNumber: 8,
+      },
+    });
+
+    if (!projectData.project) {
+      throw new Error("指定した Projects v2 が取得できませんでした。");
+    }
+
+    const combined = combineIssuesWithProject(issuesWithEvents, projectData);
+    const metrics = createIssueMetrics(combined);
+    const debugDir = join(process.cwd(), "tmp");
+
+    mkdirSync(debugDir, { recursive: true });
+    writeFileSync(
+      join(debugDir, "createIssueMetrics.integration.json"),
+      JSON.stringify(metrics, null, 2),
+      "utf-8",
+    );
+
+    expect(metrics.length).toBeGreaterThan(0);
+    expect(metrics).toHaveLength(combined.length);
+
+    for (let index = 0; index < combined.length; index += 1) {
+      const source = combined[index];
+      const normalized = metrics[index].issue;
+
+      expect(normalized.number).toBe(source.issue.number);
+      expect(normalized.events).toHaveLength(source.events.length);
+
+      if (source.projects) {
+        expect(normalized.projects).toHaveLength(1);
+        expect(normalized.projects[0]?.projectId).toBe(source.projects.id);
+      } else {
+        expect(normalized.projects).toEqual([]);
+      }
+    }
+
+    expect(metrics.some((entry) => Object.keys(entry.metrics).length > 0)).toBe(true);
+  }, 30_000);
 });
 
