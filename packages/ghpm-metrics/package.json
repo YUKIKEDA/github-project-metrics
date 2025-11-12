@@ -1,0 +1,15 @@
+{
+  "name": "@github-project-metrics/ghpm-metrics",
+  "version": "0.1.0",
+  "description": "Composable helpers for building GitHub project metrics pipelines.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "dev": "tsc --watch --project tsconfig.json"
+  },
+  "dependencies": {
+    "@github-project-metrics/ghpm-issues": "workspace:*"
+  }
+}
