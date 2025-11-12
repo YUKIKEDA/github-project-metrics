@@ -4,11 +4,11 @@ import { Octokit } from "@octokit/rest";
 import { config as loadEnv } from "dotenv";
 import type { CombinedIssue } from "@github-project-metrics/ghpm-issues";
 import { describe, expect, it } from "vitest";
-import { combineIssuesWithProject } from "../../../ghpm-issues/src/combinedIssue/index.js";
-import { fetchIssuesWithEvents } from "../../../ghpm-issues/src/issueEvent/index.js";
-import { fetchAllIssues } from "../../../ghpm-issues/src/issues/index.js";
-import type { GitHubApiContext } from "../../../ghpm-issues/src/issues/types/githubApiContext.js";
-import { fetchAllProjectData } from "../../../ghpm-issues/src/projects/index.js";
+import { combineIssuesWithProject } from "../../ghpm-issues/src/combinedIssue/index.js";
+import { fetchIssuesWithEvents } from "../../ghpm-issues/src/issueEvent/index.js";
+import { fetchAllIssues } from "../../ghpm-issues/src/issues/index.js";
+import type { GitHubApiContext } from "../../ghpm-issues/src/issues/types/githubApiContext.js";
+import { fetchAllProjectData } from "../../ghpm-issues/src/projects/index.js";
 import { createIssueMetrics } from "./index";
 
 loadEnv();
