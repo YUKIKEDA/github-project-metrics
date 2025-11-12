@@ -1,6 +1,6 @@
-import type { ResponseIssue } from "../issues/types/responseIssue";
 import type { ProjectData, ProjectV2Item } from "../projects/types/projectData";
-import type { IssueWithProject } from "./types/issueWithProject";
+import type { IssueWithEvent } from "../issueEvent/types/issueWithEvent";
+import type { CombinedIssue } from "./types/combinedIssue";
 
 function createProjectItemMap(
   projectData: ProjectData | null | undefined,
@@ -20,20 +20,21 @@ function createProjectItemMap(
 }
 
 /**
- * REST API から取得した Issue と Projects v2 のアイテム情報を結合する。
+ * REST API から取得した Issue + Timeline Events と Projects v2 のアイテム情報を結合する。
  *
- * @param issues - REST API から取得した Issue 一覧。
+ * @param issuesWithEvents - REST API から取得した Issue と Timeline Events の一覧。
  * @param projectData - Projects v2 から取得したプロジェクトデータ。null の場合は結合を行わない。
- * @returns Issue と Project アイテムを結合した結果。
+ * @returns Issue / Project / Events を結合した結果。
  */
 export function combineIssuesWithProject(
-  issues: ResponseIssue[],
+  issuesWithEvents: IssueWithEvent[],
   projectData: ProjectData | null | undefined,
-): IssueWithProject[] {
+): CombinedIssue[] {
   const projectItemMap = createProjectItemMap(projectData);
 
-  return issues.map<IssueWithProject>((issue) => ({
+  return issuesWithEvents.map<CombinedIssue>(({ issue, events }) => ({
     issue,
+    events,
     projects: projectItemMap.get(issue.number) ?? null,
   }));
 }
