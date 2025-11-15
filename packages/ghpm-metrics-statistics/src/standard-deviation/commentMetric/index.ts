@@ -1,0 +1,29 @@
+import type { CommentCountMetric } from "@github-project-metrics/ghpm-metrics";
+import { standardDeviation } from "@github-project-metrics/ghpm-statistics";
+
+/**
+ * CommentCountMetric の各フィールドの標準偏差を計算します。
+ *
+ * @param metrics - 標準偏差を計算する CommentCountMetric 配列
+ * @returns 各フィールドの標準偏差。配列が空、または要素数が不足している場合は undefined を返します。
+ */
+export function calculateCommentCountStandardDeviation(
+  metrics: ReadonlyArray<CommentCountMetric>,
+): { total: number; participantCount: number } | undefined {
+  if (metrics.length < 2) {
+    return undefined;
+  }
+
+  const totals = metrics.map((m) => m.total);
+  const participantCounts = metrics.map((m) => m.participantCount);
+
+  try {
+    return {
+      total: standardDeviation(totals),
+      participantCount: standardDeviation(participantCounts),
+    };
+  } catch {
+    return undefined;
+  }
+}
+
