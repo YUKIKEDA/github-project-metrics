@@ -50,6 +50,15 @@ importers:
         specifier: ^17.2.3
         version: 17.2.3
 
+  packages/ghpm-metrics-statistics:
+    dependencies:
+      '@github-project-metrics/ghpm-metrics':
+        specifier: workspace:*
+        version: link:../ghpm-metrics
+      '@github-project-metrics/ghpm-statistics':
+        specifier: workspace:*
+        version: link:../ghpm-statistics
+
   packages/ghpm-statistics:
     dependencies:
       ml-array-max:

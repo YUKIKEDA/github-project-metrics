@@ -1,0 +1,16 @@
+{
+  "name": "@github-project-metrics/ghpm-metrics-statistics",
+  "version": "0.1.0",
+  "description": "Calculate statistics for GitHub project metrics.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "dev": "tsc --watch --project tsconfig.json"
+  },
+  "dependencies": {
+    "@github-project-metrics/ghpm-metrics": "workspace:*",
+    "@github-project-metrics/ghpm-statistics": "workspace:*"
+  }
+}

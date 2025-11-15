@@ -1,6 +1,19 @@
 import { defineConfig } from "vitest/config";
+import { resolve } from "node:path";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@github-project-metrics/ghpm-statistics": resolve(
+        __dirname,
+        "packages/ghpm-statistics/dist/index.js",
+      ),
+      "@github-project-metrics/ghpm-metrics": resolve(
+        __dirname,
+        "packages/ghpm-metrics/dist/index.js",
+      ),
+    },
+  },
   test: {
     // テスト環境を Node.js に設定
     environment: "node",
