@@ -6,11 +6,11 @@ export default defineConfig({
     alias: {
       "@github-project-metrics/ghpm-statistics": resolve(
         __dirname,
-        "packages/ghpm-statistics/dist/index.js",
+        "packages/ghpm-statistics/src/index.ts",
       ),
       "@github-project-metrics/ghpm-metrics": resolve(
         __dirname,
-        "packages/ghpm-metrics/dist/index.js",
+        "packages/ghpm-metrics/src/index.ts",
       ),
     },
   },
