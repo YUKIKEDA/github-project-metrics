@@ -1,5 +1,10 @@
+export { combineIssuesWithProject } from "./combinedIssue/index.js";
+export { fetchAllIssues } from "./issues/index.js";
+export { fetchIssuesWithEvents } from "./issueEvent/index.js";
+export { fetchAllProjectData } from "./projects/index.js";
 export type { CombinedIssue } from "./combinedIssue/types/combinedIssue";
 export type { ResponseIssue } from "./issues/types/responseIssue";
+export type { GitHubApiContext } from "./issues/types/githubApiContext";
 export type {
   LabelSummary,
   ProjectData,
@@ -19,4 +24,5 @@ export type {
   RepositorySummary,
   UserSummary,
 } from "./projects/types/projectData";
+export type { GitHubGraphQLContext } from "./projects/types/githubGraphqlContext";
 
