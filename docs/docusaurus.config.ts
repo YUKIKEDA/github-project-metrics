@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'GitHub Project Metrics',
-  tagline: 'GitHubリポジトリの活動量を可視化し、チームの状況把握をスピーディーに',
+  title: 'My Site',
+  tagline: 'Dinosaurs are cool',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -14,20 +14,16 @@ const config: Config = {
     v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
-  //--------------------------------------------------
-
   // Set the production url of your site here
-  url: 'https://yukikeda.github.io',
+  url: 'https://your-docusaurus-site.example.com',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/github-project-metrics/',
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'YUKIKEDA', // Usually your GitHub org/user name.
-  projectName: 'github-project-metrics', // Usually your repo name.
-
-  //--------------------------------------------------
+  organizationName: 'facebook', // Usually your GitHub org/user name.
+  projectName: 'docusaurus', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
@@ -35,8 +31,8 @@ const config: Config = {
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'ja',
-    locales: ['ja'],
+    defaultLocale: 'en',
+    locales: ['en'],
   },
 
   presets: [
@@ -48,7 +44,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/YUKIKEDA/github-project-metrics/tree/main/docs/docs/',
+            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: {
           showReadingTime: true,
@@ -59,7 +55,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/YUKIKEDA/github-project-metrics/tree/main/docs/blog/',
+            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -72,19 +68,6 @@ const config: Config = {
     ],
   ],
 
-  plugins: [
-    [
-      '@easyops-cn/docusaurus-search-local',
-      {
-        hashed: false,
-        indexDocs: true,
-        indexBlog: true,
-        docsRouteBasePath: '/docs',
-        language: ['ja'],
-      },
-    ],
-  ],
-
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
@@ -92,9 +75,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'GitHub Project Metrics',
+      title: 'My Site',
       logo: {
-        alt: 'GitHub Project Metrics Logo',
+        alt: 'My Site Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -102,47 +85,60 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'ドキュメント',
+          label: 'Tutorial',
         },
-        {to: '/blog', label: 'ブログ', position: 'left'},
-        {to: '/dashboard', label: 'ダッシュボード', position: 'left'},
+        {to: '/blog', label: 'Blog', position: 'left'},
+        {
+          href: 'https://github.com/facebook/docusaurus',
+          label: 'GitHub',
+          position: 'right',
+        },
       ],
     },
     footer: {
       style: 'dark',
       links: [
         {
-          title: 'リソース',
+          title: 'Docs',
           items: [
             {
-              label: 'ドキュメント',
+              label: 'Tutorial',
               to: '/docs/intro',
-            },
-            {
-              label: 'ブログ',
-              to: '/blog',
-            },
-            {
-              label: 'ダッシュボード',
-              to: '/dashboard',
             },
           ],
         },
         {
-          title: 'コントリビューション',
+          title: 'Community',
           items: [
             {
-              label: 'GitHub Issues',
-              href: 'https://github.com/YUKIKEDA/github-project-metrics/issues',
+              label: 'Stack Overflow',
+              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
             },
             {
-              label: 'GitHub Repository',
-              href: 'https://github.com/YUKIKEDA/github-project-metrics',
+              label: 'Discord',
+              href: 'https://discordapp.com/invite/docusaurus',
+            },
+            {
+              label: 'X',
+              href: 'https://x.com/docusaurus',
+            },
+          ],
+        },
+        {
+          title: 'More',
+          items: [
+            {
+              label: 'Blog',
+              to: '/blog',
+            },
+            {
+              label: 'GitHub',
+              href: 'https://github.com/facebook/docusaurus',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} YUKIKEDA. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

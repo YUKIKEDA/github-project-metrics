@@ -2,7 +2,12 @@
   // This file is not used in compilation. It is here just for a nice editor experience.
   "extends": "@docusaurus/tsconfig",
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    // JSX を有効化（念のため明示）
+    "jsx": "react-jsx",
+    // clsx などの default import を許可
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "exclude": [".docusaurus", "build"]
 }
