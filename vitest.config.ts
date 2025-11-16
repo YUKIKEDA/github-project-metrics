@@ -4,6 +4,10 @@ import { resolve } from "node:path";
 export default defineConfig({
   resolve: {
     alias: {
+      "@github-project-metrics/ghpm-issues": resolve(
+        __dirname,
+        "packages/ghpm-issues/src/index.ts",
+      ),
       "@github-project-metrics/ghpm-statistics": resolve(
         __dirname,
         "packages/ghpm-statistics/src/index.ts",
@@ -11,6 +15,10 @@ export default defineConfig({
       "@github-project-metrics/ghpm-metrics": resolve(
         __dirname,
         "packages/ghpm-metrics/src/index.ts",
+      ),
+      "@github-project-metrics/ghpm-metrics-statistics": resolve(
+        __dirname,
+        "packages/ghpm-metrics-statistics/src/index.ts",
       ),
     },
   },

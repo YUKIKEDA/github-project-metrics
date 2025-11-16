@@ -22,8 +22,6 @@
     "noUnusedParameters": true,
     // コンパイル結果の出力ディレクトリ
     "outDir": "dist",
-    // ソースコードのルートディレクトリ
-    "rootDir": "src",
     // 型定義ファイルの整合性チェックを省略してビルドを高速化
     "skipLibCheck": true,
     // ソースマップファイルを出力
@@ -31,7 +29,20 @@
     // TypeScript の厳格モードを有効化
     "strict": true,
     // トランスパイル時のターゲット ECMAScript バージョン
-    "target": "ES2022"
+    "target": "ES2022",
+    // パスエイリアスの設定
+    "baseUrl": ".",
+    "paths": {
+      "@github-project-metrics/ghpm-issues": [
+        "packages/ghpm-issues/src/index.ts"
+      ],
+      "@github-project-metrics/ghpm-metrics": [
+        "packages/ghpm-metrics/src/index.ts"
+      ],
+      "@github-project-metrics/ghpm-metrics-statistics": [
+        "packages/ghpm-metrics-statistics/src/index.ts"
+      ]
+    }
   },
   // コンパイル対象のファイルパターン
   "include": ["src"],

@@ -22,10 +22,22 @@
   "packageManager": "pnpm@9.12.1+sha256.91452fdfa46234ae447d46d5c4fc4e7e0a7058f90495c4b6f77f8beebbb154e3",
   "devDependencies": {
     "@biomejs/biome": "2.3.4",
+    "@octokit/rest": "^22.0.1",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^24.10.0",
     "@vitest/coverage-v8": "^4.0.8",
     "dotenv": "^17.2.3",
+    "rollup": "^4.53.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.8"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1",
+    "@github-project-metrics/ghpm-issues": "workspace:*",
+    "@github-project-metrics/ghpm-metrics": "workspace:*",
+    "@github-project-metrics/ghpm-metrics-statistics": "workspace:*"
   }
 }
