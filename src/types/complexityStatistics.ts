@@ -1,3 +1,5 @@
+import type { IQROutlier, ZScoreOutlier } from "@github-project-metrics/ghpm-statistics";
+
 /**
  * 複雑さの統計値。
  */
@@ -27,8 +29,8 @@ export interface ComplexityStatistics {
     [key: number]: { estimated: number };
   };
   /** 外れ値（IQR法）。 */
-  outliersIqr?: { estimated: number[] };
+  outliersIqr?: { estimated: IQROutlier[] };
   /** 外れ値（Zスコア法）。 */
-  outliersZscore?: { estimated: number[] };
+  outliersZscore?: { estimated: ZScoreOutlier[] };
 }
 

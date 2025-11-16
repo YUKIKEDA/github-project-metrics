@@ -1,3 +1,5 @@
+import type { IQROutlier, ZScoreOutlier } from "@github-project-metrics/ghpm-statistics";
+
 /**
  * コメント数の統計値。
  */
@@ -27,8 +29,8 @@ export interface CommentCountStatistics {
     [key: number]: { total: number; participantCount: number };
   };
   /** 外れ値（IQR法）。 */
-  outliersIqr?: { total: number[]; participantCount: number[] };
+  outliersIqr?: { total: IQROutlier[]; participantCount: IQROutlier[] };
   /** 外れ値（Zスコア法）。 */
-  outliersZscore?: { total: number[]; participantCount: number[] };
+  outliersZscore?: { total: ZScoreOutlier[]; participantCount: ZScoreOutlier[] };
 }
 

@@ -41,6 +41,9 @@
       ],
       "@github-project-metrics/ghpm-metrics-statistics": [
         "packages/ghpm-metrics-statistics/src/index.ts"
+      ],
+      "@github-project-metrics/ghpm-statistics": [
+        "packages/ghpm-statistics/src/index.ts"
       ]
     }
   },

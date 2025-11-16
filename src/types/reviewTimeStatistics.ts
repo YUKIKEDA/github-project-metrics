@@ -1,3 +1,5 @@
+import type { IQROutlier, ZScoreOutlier } from "@github-project-metrics/ghpm-statistics";
+
 /**
  * レビュー時間の統計値。
  */
@@ -27,8 +29,8 @@ export interface ReviewTimeStatistics {
     [key: number]: { duration: number };
   };
   /** 外れ値（IQR法）。 */
-  outliersIqr?: { duration: number[] };
+  outliersIqr?: { duration: IQROutlier[] };
   /** 外れ値（Zスコア法）。 */
-  outliersZscore?: { duration: number[] };
+  outliersZscore?: { duration: ZScoreOutlier[] };
 }
 

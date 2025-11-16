@@ -1,3 +1,5 @@
+import type { IQROutlier, ZScoreOutlier } from "@github-project-metrics/ghpm-statistics";
+
 /**
  * リードタイムの統計値。
  */
@@ -27,8 +29,8 @@ export interface LeadTimeStatistics {
     [key: number]: { durationMs: number };
   };
   /** 外れ値（IQR法）。 */
-  outliersIqr?: { durationMs: number[] };
+  outliersIqr?: { durationMs: IQROutlier[] };
   /** 外れ値（Zスコア法）。 */
-  outliersZscore?: { durationMs: number[] };
+  outliersZscore?: { durationMs: ZScoreOutlier[] };
 }
 

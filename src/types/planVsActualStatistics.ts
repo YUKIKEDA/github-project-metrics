@@ -1,3 +1,5 @@
+import type { IQROutlier, ZScoreOutlier } from "@github-project-metrics/ghpm-statistics";
+
 /**
  * 計画と実績の差異の統計値。
  */
@@ -83,17 +85,17 @@ export interface PlanVsActualStatistics {
   };
   /** 外れ値（IQR法）。 */
   outliersIqr?: {
-    planned: number[];
-    actual: number[];
-    variance: number[];
-    varianceRatio?: number[];
+    planned: IQROutlier[];
+    actual: IQROutlier[];
+    variance: IQROutlier[];
+    varianceRatio?: IQROutlier[];
   };
   /** 外れ値（Zスコア法）。 */
   outliersZscore?: {
-    planned: number[];
-    actual: number[];
-    variance: number[];
-    varianceRatio?: number[];
+    planned: ZScoreOutlier[];
+    actual: ZScoreOutlier[];
+    variance: ZScoreOutlier[];
+    varianceRatio?: ZScoreOutlier[];
   };
 }
 
