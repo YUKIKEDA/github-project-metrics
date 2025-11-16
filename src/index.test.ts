@@ -34,7 +34,14 @@ describe("end-to-end integration", () => {
       },
     };
 
-    const graphqlContext: GitHubGraphQLContext | undefined = undefined;
+    const graphqlContext: GitHubGraphQLContext = {
+      client,
+      options: {
+        ownerType: "User",
+        login: "YUKIKEDA",
+        projectNumber: 8,
+      },
+    };
 
     // 1. CombinedIssueを取得
     const combinedIssues = await fetchCombinedIssues(apiContext, graphqlContext);
