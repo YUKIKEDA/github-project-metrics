@@ -2,40 +2,57 @@
 
 This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
+このリポジトリは **ルートが pnpm ワークスペース** になっているため、
+ドキュメントサイトも pnpm で管理します。
+
 ## Installation
 
+ルートディレクトリで依存関係をインストールします:
+
 ```bash
-yarn
+pnpm install
 ```
 
 ## Local Development
 
+ルートから docs パッケージを指定して起動します:
+
 ```bash
-yarn start
+pnpm --filter docs start
 ```
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+もしくは `docs/` ディレクトリに移動して実行しても構いません:
+
+```bash
+cd docs
+pnpm start
+```
+
+このコマンドはローカル開発サーバーを起動し、ブラウザを開きます。
+ほとんどの変更はサーバーの再起動なしに自動で反映されます。
 
 ## Build
 
 ```bash
-yarn build
+pnpm --filter docs build
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+`build` ディレクトリに静的ファイルが生成され、任意の静的ホスティングサービスで配信できます。
 
-## Deployment
+## Deployment (GitHub Pages)
 
-Using SSH:
+GitHub Pages へデプロイする場合は、Docusaurus の `deploy` スクリプトを pnpm 経由で呼び出します。
+
+SSH を使う場合:
 
 ```bash
-USE_SSH=true yarn deploy
+pnpm --filter docs deploy --env USE_SSH=true
 ```
 
-Not using SSH:
+SSH を使わない場合:
 
 ```bash
-GIT_USER=<Your GitHub username> yarn deploy
+pnpm --filter docs deploy --env GIT_USER=<Your GitHub username>
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+このコマンドはビルドを実行し、`gh-pages` ブランチに push して GitHub Pages に公開します。

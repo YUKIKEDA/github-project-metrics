@@ -1,18 +1,17 @@
 // Export the Productivity Dashboard as the default component
-export { default } from './ProductivityDashboard';
+export { default } from "./ProductivityDashboard";
 
 // Export individual components for reuse
-export { KPICard, ThroughputCard } from './KPICard';
+export { KPICard, ThroughputCard } from "./KPICard";
 export {
   TrendAnalysis,
   DistributionAnalysis,
   CorrelationAnalysis,
   SegmentAnalysis,
-  RegressionAnalysis,
-} from './AnalysisTabs';
+} from "./AnalysisTabs";
 
 // Export types
-export type * from './types';
+export type * from "./types";
 
 // Export utilities
-export * from './utils';
+export * from "./utils";

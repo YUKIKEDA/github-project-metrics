@@ -11,7 +11,6 @@ import {
   DistributionAnalysis,
   CorrelationAnalysis,
   SegmentAnalysis,
-  RegressionAnalysis,
 } from "./AnalysisTabs";
 import {
   extractProjects,
@@ -223,15 +222,6 @@ export default function ProductivityDashboard(): ReactElement {
             >
               セグメント分析
             </button>
-            <button
-              className={clsx(
-                styles.tabButton,
-                activeTab === "regression" && styles.tabButtonActive
-              )}
-              onClick={() => setActiveTab("regression")}
-            >
-              重回帰分析
-            </button>
           </div>
 
           <div className={styles.tabContent}>
@@ -258,9 +248,6 @@ export default function ProductivityDashboard(): ReactElement {
             )}
             {activeTab === "segment" && (
               <SegmentAnalysis issues={filteredIssues} palette={palette} />
-            )}
-            {activeTab === "regression" && (
-              <RegressionAnalysis issues={filteredIssues} statistics={statistics} palette={palette} />
             )}
           </div>
         </div>

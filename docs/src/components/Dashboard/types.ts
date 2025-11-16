@@ -185,7 +185,7 @@ export interface PeriodInfo {
 }
 
 // Tab types
-export type TabKey = 'trend' | 'distribution' | 'correlation' | 'segment' | 'regression';
+export type TabKey = 'trend' | 'distribution' | 'correlation' | 'segment';
 
 // Chart types for distribution analysis
 export type DistributionChartType = 'histogram' | 'boxplot';
