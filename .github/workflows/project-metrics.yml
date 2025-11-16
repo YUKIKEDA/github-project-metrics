@@ -1,0 +1,21 @@
+name: GitHub Project Metrics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run GitHub Project Metrics
+        uses: ./
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          project-scope: "user"
+          organization-name: ""
+          project-id: "8"
+          output-path: "./output"

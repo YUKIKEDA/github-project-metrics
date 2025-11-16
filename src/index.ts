@@ -41,9 +41,33 @@ async function main(): Promise<void> {
       },
     };
 
-    // GitHub GraphQL APIコンテキストを作成（オプション）
-    // プロジェクトデータが必要な場合は設定
-    const graphqlContext: GitHubGraphQLContext | undefined = undefined;
+    // GitHub GraphQL APIコンテキストを作成
+    // Project v2 のデータを利用してメトリクスを計算する
+    const projectScope = core.getInput("project-scope", { required: true });
+    const organizationName = core.getInput("organization-name");
+    const projectIdInput = core.getInput("project-id", { required: true });
+
+    const ownerType: GitHubGraphQLContext["options"]["ownerType"] =
+      projectScope === "organization" ? "Organization" : "User";
+
+    const login =
+      ownerType === "Organization"
+        ? organizationName || owner
+        : owner;
+
+    const projectNumber = Number.parseInt(projectIdInput, 10);
+    if (Number.isNaN(projectNumber)) {
+      throw new Error(`project-id は数値で指定してください: ${projectIdInput}`);
+    }
+
+    const graphqlContext: GitHubGraphQLContext = {
+      client: octokit as unknown as GitHubGraphQLContext["client"],
+      options: {
+        ownerType,
+        login,
+        projectNumber,
+      },
+    };
 
     // CombinedIssueを取得
     core.info("CombinedIssueを取得中...");

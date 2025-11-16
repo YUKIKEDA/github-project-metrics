@@ -1,0 +1,33 @@
+name: GitHub Project Metrics
+description: GitHubのIssueやProjectの情報を取得してチームの生産性を計測
+
+inputs:
+  # GitHub token for API access
+  github-token: 
+    description: GitHub token for accessing repository data
+    required: true
+  # Project取得のスコープ
+  project-scope: 
+    description: Project取得のスコープ（user, organization）
+    required: true
+  # 組織名（organizationスコープの場合）
+  organization-name: 
+    description: 組織名（project-scopeがorganizationの場合に必須）
+    required: false
+  # Project ID
+  project-id: 
+    description: Project ID
+    required: true
+  # JSONファイルの出力先
+  output-path: 
+    description: JSONファイルの出力先ディレクトリ（デフォルトはGitHubワークスペース）
+    required: false
+  # 生データの出力と詳細ログを有効にする（true/false）
+  debug-json:
+    description: 生データの出力と詳細ログを有効にする（true/false）
+    required: false
+    default: "false"
+
+runs:
+  using: node20
+  main: dist/index.js
